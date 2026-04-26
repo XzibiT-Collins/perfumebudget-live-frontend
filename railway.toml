@@ -3,6 +3,6 @@ dockerfile = "Dockerfile"
 buildpacks = []
 
 [deploy]
-startCommand = "/entrypoint.sh"
-healthcheckPath = "/index.html"
+startCommand = "nginx -g 'daemon off;'"
+healthcheckPath = "/"
 healthcheckTimeout = 30
