@@ -1,5 +1,5 @@
-# Stage 1: Build stage
-FROM node:20-alpine AS builder
+# Single stage build - using Node for both build and production
+FROM node:20-alpine
 
 WORKDIR /app
 
@@ -7,38 +7,20 @@ WORKDIR /app
 COPY package*.json ./
 COPY tsconfig.json ./
 
-# Install dependencies
-RUN npm ci --only=production && \
-    npm ci --only=development && \
-    npm cache clean --force
+# Install dependencies (all, since we need dev deps for build)
+RUN npm ci
 
 # Copy source code
 COPY . .
 
-# Build the application
+# Build the React app with Vite
 RUN npm run build
 
-# Stage 2: Runtime stage with Nginx
-FROM nginx:alpine
+# Expose port (Railway will override with $PORT environment variable)
+EXPOSE 3000
 
-# Remove default nginx config
-RUN rm /etc/nginx/conf.d/default.conf
+# Set NODE_ENV to production
+ENV NODE_ENV=production
 
-# Copy custom nginx config
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-
-# Copy built application from builder stage
-COPY --from=builder /app/dist /usr/share/nginx/html
-
-# Copy entrypoint script
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
-
-# Install curl for health checks
-RUN apk add --no-cache curl
-
-# Expose port (Railway will override with $PORT)
-EXPOSE 80
-
-# Start with entrypoint script
-ENTRYPOINT ["/entrypoint.sh"]
+# Start the Express server which serves the built dist folder
+CMD ["npm", "run", "preview"]
