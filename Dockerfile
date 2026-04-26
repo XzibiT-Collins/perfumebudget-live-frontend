@@ -34,12 +34,11 @@ COPY --from=builder /app/dist /usr/share/nginx/html
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
+# Install curl for health checks
+RUN apk add --no-cache curl
+
 # Expose port (Railway will override with $PORT)
 EXPOSE 80
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD wget --quiet --tries=1 --spider http://localhost:${PORT:-80}/index.html || exit 1
 
 # Start with entrypoint script
 ENTRYPOINT ["/entrypoint.sh"]
