@@ -1,22 +1,18 @@
 #!/bin/sh
-# entrypoint.sh - Start nginx with dynamic port
+# entrypoint.sh - Start Express server with dynamic port
 
 set -e
 
-PORT=${PORT:-80}
+# Get port from environment or use default
+PORT=${PORT:-3000}
 
-echo "Starting nginx on port: $PORT"
+echo "=========================================="
+echo "Starting Express Server on PORT: $PORT"
+echo "=========================================="
 
-# Use sed to replace the port in nginx config
-sed -i "s/listen 80;/listen ${PORT};/" /etc/nginx/conf.d/default.conf
+# Set environment and start the app
+export NODE_ENV=production
+export PORT=$PORT
 
-# Verify the config was updated
-echo "Nginx configuration:"
-grep "listen" /etc/nginx/conf.d/default.conf
-
-# Validate nginx configuration
-nginx -t
-
-# Start nginx in foreground
-echo "Nginx started successfully"
-exec nginx -g "daemon off;"
+# Start the Express server which serves the built dist folder
+exec tsx server.ts
