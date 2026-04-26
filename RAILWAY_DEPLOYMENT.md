@@ -1,81 +1,41 @@
 # Railway Deployment Guide
 
-## ✅ Now Compatible with Railway!
+This frontend is now set up to deploy on Railway as a static site behind Nginx.
 
-### Prerequisites
-- Railway account (https://railway.app)
-- GitHub repository with this code
+## What Changed
 
-### Steps to Deploy
+- Multi-stage `Dockerfile` builds the Vite app in a Node image and serves the compiled `dist/` output with Nginx.
+- Nginx serves the app as a single-page application, so React Router routes keep working on refresh.
+- Railway is configured to start Nginx instead of the missing `/entrypoint.sh`.
 
-1. **Push to GitHub**
-   ```bash
-   git push origin main
-   ```
+## Deploy Steps
 
-2. **Connect Railway**
-   - Go to https://railway.app/dashboard
-   - Click "New Project" → "Deploy from GitHub"
-   - Select your repository
-   - Railway will automatically detect the Dockerfile
+1. Push your changes to GitHub.
+2. In Railway, create or update the service from this repository.
+3. Railway should detect the root `Dockerfile`.
+4. Set environment variables in Railway as needed:
+   - `VITE_API_BACKEND_URL=https://your-backend.railway.app`
+   - `GEMINI_API_KEY=your-key`
+   - `PORT=8080` if you want to override the default
+5. Deploy the service.
 
-3. **Environment Variables** (Optional)
-   Add in Railway Dashboard → Variables:
-   ```
-   VITE_API_BACKEND_URL=https://your-api.railway.app
-   GEMINI_API_KEY=your-key
-   ```
+## How It Works
 
-4. **Deploy**
-   - Click "Deploy Now"
-   - Railway will build your image and deploy it
-   - Your app will be available at: `https://your-project.railway.app`
+- The build stage runs `npm ci` and `npm run build`.
+- The runtime stage uses the official Nginx image.
+- The Nginx config is rendered from `/etc/nginx/templates/default.conf.template`, so `${PORT}` is injected at startup.
+- Requests that do not map to a real file fall back to `index.html`, which keeps SPA routing intact.
 
-### What's Configured
-
-- ✅ Dynamic port handling (uses Railway's `$PORT` variable)
-- ✅ Docker build with Vite
-- ✅ Nginx for efficient static serving
-- ✅ Health checks enabled
-- ✅ Security headers configured
-- ✅ Gzip compression enabled
-- ✅ SPA routing working (React Router)
-- ✅ Environment variables support
-
-### Verify Before Deploying
+## Local Verification
 
 ```bash
-# Build locally to test
 docker build -t perfume-budget:latest .
-
-# Run with Railway-like environment
-docker run -p 8000:8000 -e PORT=8000 perfume-budget:latest
-
-# Visit http://localhost:8000
+docker run -p 8080:8080 -e PORT=8080 perfume-budget:latest
 ```
 
-### Troubleshooting
+Then open `http://localhost:8080`.
 
-**App not loading?**
-- Check Railway logs: `railway logs`
-- Verify PORT is not hardcoded
-- Ensure build completed: `railway status`
+## Notes
 
-**CORS errors?**
-- Update `nginx.conf` to add CORS headers if calling external APIs
-- Or configure your backend to allow your Railway domain
-
-**API calls failing?**
-- Set `VITE_API_BACKEND_URL` environment variable in Railway
-- Make sure backend is also deployed or accessible
-
-### API Configuration
-
-If you have a backend API on Railway too:
-
-1. Deploy backend to Railway first
-2. Get its URL: `https://backend.railway.app`
-3. Set in frontend environment: `VITE_API_BACKEND_URL=https://backend.railway.app`
-
-The nginx proxy will automatically route `/api/*` calls to your backend.
-
+- If your frontend calls an API, set `VITE_API_BACKEND_URL` to the deployed backend URL.
+- The app does not need the old Express `server.ts` process in production when served this way.
