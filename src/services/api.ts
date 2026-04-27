@@ -1,21 +1,29 @@
 /// <reference types="vite/client" />
 import axios from 'axios';
 import type { AxiosRequestConfig } from 'axios';
+import { resolveApiBaseUrl } from './apiConfig.js';
 
-// ─── Axios instance ───────────────────────────────────────────────────────────
+const apiBasePath = import.meta.env.VITE_API_BASE_URL || '/api/v1';
+const apiBackendUrl = import.meta.env.VITE_API_BACKEND_URL?.trim();
+const apiBaseUrl = resolveApiBaseUrl({ apiBackendUrl, apiBasePath });
+
+console.info('[API] Resolved base URL:', apiBaseUrl);
+if (import.meta.env.PROD && !apiBackendUrl) {
+  console.warn(
+    '[API] VITE_API_BACKEND_URL is not set. Requests will stay on the current origin, which will return 405 unless that host proxies /api/v1 to the backend.'
+  );
+}
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BACKEND_URL
-    ? `${import.meta.env.VITE_API_BACKEND_URL}${import.meta.env.VITE_API_BASE_URL || '/api/v1'}`
-    : (import.meta.env.VITE_API_BASE_URL || '/api/v1'),
+  baseURL: apiBaseUrl,
   withCredentials: true, // Cookie-based JWT (access + refresh cookies)
 });
 
-// ─── Token-refresh queue ──────────────────────────────────────────────────────
+// Token-refresh queue
 //
 // Problem: if 3 requests fire simultaneously and all hit a 401, without
 // coordination all 3 would race to call /auth/refresh. The queue ensures
-// exactly one refresh attempt runs at a time — the other failed requests
+// exactly one refresh attempt runs at a time - the other failed requests
 // are paused and retried automatically once a new token is issued.
 
 type QueueEntry = {
@@ -38,7 +46,7 @@ const processQueue = (error: unknown) => {
   failedQueue = [];
 };
 
-// ─── Response interceptor ─────────────────────────────────────────────────────
+// Response interceptor
 
 api.interceptors.response.use(
   (response) => response,
@@ -54,7 +62,7 @@ api.interceptors.response.use(
 
     if (status === 401 && !originalRequest._retry && !isRefreshEndpoint && !isLoginEndpoint) {
       if (isRefreshing) {
-        // Another request is already refreshing — queue this one to retry later.
+        // Another request is already refreshing - queue this one to retry later.
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         })
@@ -66,7 +74,7 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        // Call the refresh endpoint — the refresh token arrives via httpOnly cookie
+        // Call the refresh endpoint - the refresh token arrives via httpOnly cookie
         // so no body is needed; the server reads it from the cookie automatically.
         await api.post('/auth/refresh');
 
@@ -75,7 +83,7 @@ api.interceptors.response.use(
       } catch (refreshError) {
         processQueue(refreshError); // Reject all queued requests
 
-        // Refresh itself failed — the session is truly expired.
+        // Refresh itself failed - the session is truly expired.
         // Dispatch a custom event so AuthContext can log the user out cleanly.
         window.dispatchEvent(new CustomEvent('auth:session-expired'));
 
@@ -85,7 +93,7 @@ api.interceptors.response.use(
       }
     }
 
-    // For non-401 errors, log them (but don't toast — let callers handle UI).
+    // For non-401 errors, log them (but don't toast - let callers handle UI).
     if (status !== 401) {
       const message =
         error.response?.data?.description ||
