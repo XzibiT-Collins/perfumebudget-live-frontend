@@ -6,6 +6,7 @@ import { UserRole, NotificationResponse } from '../types';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import notificationService from '../services/notificationService';
+import { resolveWebSocketConfig } from '../services/websocketConfig.js';
 
 export const useAdminNotifications = () => {
   const { user } = useAuth();
@@ -70,13 +71,6 @@ export const useAdminNotifications = () => {
     }
   }, []);
 
-  const getCookie = (name: string) => {
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return parts.pop()?.split(';').shift();
-    return null;
-  };
-
   const playSound = useCallback(() => {
     try {
       const AudioContext = (window as any).AudioContext || (window as any).webkitAudioContext;
@@ -116,25 +110,27 @@ export const useAdminNotifications = () => {
       return;
     }
 
-    const token = getCookie('accessToken');
-    if (!token) {
-      console.log('[WebSocket] Connection aborted. Reason: accessToken is missing.');
-      return;
-    }
-
     const backendUrl = import.meta.env.VITE_API_BACKEND_URL;
     if (!backendUrl) {
       console.warn('[WebSocket] VITE_API_BACKEND_URL is not defined in .env');
       return;
     }
 
-    const socketUrl = `${backendUrl.replace(/\/$/, '')}/ws`;
+    let socketConfig;
+    try {
+      socketConfig = resolveWebSocketConfig({ backendUrl });
+    } catch (error) {
+      console.warn('[WebSocket] Unable to resolve websocket config', error);
+      return;
+    }
 
     const client = new Client({
-      webSocketFactory: () => new SockJS(socketUrl),
-      connectHeaders: {
-        Authorization: `Bearer ${token}`,
-      },
+      webSocketFactory: () =>
+        new SockJS(
+          socketConfig.socketUrl,
+          undefined,
+          { withCredentials: socketConfig.withCredentials } as any
+        ),
       debug: (str) => {
         // console.log('[STOMP DEBUG]', str);
       },
