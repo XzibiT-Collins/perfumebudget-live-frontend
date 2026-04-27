@@ -37,5 +37,6 @@ Then open `http://localhost:8080`.
 
 ## Notes
 
-- If your frontend calls an API, set `VITE_API_BACKEND_URL` to the deployed backend URL.
+- `VITE_API_BACKEND_URL` must be present when the frontend is built. If it is missing, the app will call the current origin at `/api/v1`, which will produce 405 responses unless that host proxies API traffic to the backend.
+- If your frontend calls an API from a separate Railway service, set `VITE_API_BACKEND_URL` to the deployed backend origin and rebuild the frontend service.
 - The app does not need the old Express `server.ts` process in production when served this way.
