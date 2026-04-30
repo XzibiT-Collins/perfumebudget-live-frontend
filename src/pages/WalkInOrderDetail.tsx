@@ -64,23 +64,36 @@ export const WalkInOrderDetail = () => {
                 <title>Walk-In Receipt #${order.orderNumber}</title>
                 <style>
                     * { box-sizing: border-box; margin: 0; padding: 0; }
-                    body { font-family: 'Segoe UI', sans-serif; padding: 40px; color: #1A1A1A; max-width: 400px; margin: 0 auto; border: 1px solid #eee; }
-                    .header { text-align: center; margin-bottom: 20px; }
-                    h1 { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
-                    .sub { font-size: 12px; color: #666; margin-bottom: 20px; }
-                    .section { margin-bottom: 20px; }
-                    .section-title { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #999; margin-bottom: 8px; border-bottom: 1px solid #eee; padding-bottom: 4px; }
-                    .row { display: flex; justify-content: space-between; font-size: 13px; padding: 4px 0; }
-                    .total-row { font-weight: 700; font-size: 15px; border-top: 1px dashed #1A1A1A; padding-top: 8px; margin-top: 8px; }
-                    .footer { margin-top: 30px; text-align: center; font-size: 11px; color: #999; border-top: 1px solid #eee; padding-top: 15px; }
-                    @media print { body { padding: 10px; border: none; } }
+                    @page { size: 80mm auto; margin: 0; }
+                    body { 
+                        font-family: 'Segoe UI', sans-serif; 
+                        width: 80mm;
+                        margin: 0;
+                        padding: 4mm;
+                        color: #1A1A1A; 
+                        background: white;
+                    }
+                    .receipt-content { width: 72mm; }
+                    .header { text-align: center; margin-bottom: 15px; }
+                    h1 { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+                    .sub { font-size: 11px; color: #666; margin-bottom: 15px; }
+                    .section { margin-bottom: 15px; }
+                    .section-title { font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #999; margin-bottom: 6px; border-bottom: 1px solid #eee; padding-bottom: 3px; }
+                    .row { display: flex; justify-content: space-between; font-size: 12px; padding: 3px 0; }
+                    .total-row { font-weight: 700; font-size: 14px; border-top: 1px dashed #1A1A1A; padding-top: 6px; margin-top: 6px; }
+                    .footer { margin-top: 20px; text-align: center; font-size: 10px; color: #999; border-top: 1px solid #eee; padding-top: 10px; }
+                    @media print { 
+                        body { width: 80mm; }
+                        .no-print { display: none; }
+                    }
                 </style>
             </head>
             <body>
-                <div class="header">
-                    <h1>PERFUME BUDGET</h1>
-                    <div class="sub">IN-STORE PURCHASE</div>
-                </div>
+                <div class="receipt-content">
+                    <div class="header">
+                        <h1>PERFUME BUDGET</h1>
+                        <div class="sub">IN-STORE PURCHASE</div>
+                    </div>
 
                 <div class="section">
                     <div class="row"><span>Order #</span><span>${order.orderNumber}</span></div>

@@ -62,22 +62,35 @@ export const OrderDetail = () => {
                 <title>Receipt #${order.orderNumber}</title>
                 <style>
                     * { box-sizing: border-box; margin: 0; padding: 0; }
-                    body { font-family: 'Segoe UI', sans-serif; padding: 40px; color: #1A1A1A; max-width: 600px; margin: 0 auto; }
-                    h1 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
-                    .sub { font-size: 13px; color: #666; margin-bottom: 28px; }
-                    .section { margin-bottom: 24px; }
-                    .section-title { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #999; margin-bottom: 10px; }
-                    .row { display: flex; justify-content: space-between; font-size: 13px; padding: 6px 0; border-bottom: 1px solid #f0f0f0; }
+                    @page { size: 80mm auto; margin: 0; }
+                    body { 
+                        font-family: 'Segoe UI', sans-serif; 
+                        width: 80mm;
+                        margin: 0;
+                        padding: 4mm;
+                        color: #1A1A1A; 
+                        background: white;
+                    }
+                    .receipt-content { width: 72mm; }
+                    h1 { font-size: 18px; font-weight: 700; margin-bottom: 4px; text-align: center; }
+                    .sub { font-size: 11px; color: #666; margin-bottom: 20px; text-align: center; }
+                    .section { margin-bottom: 15px; }
+                    .section-title { font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #999; margin-bottom: 6px; }
+                    .row { display: flex; justify-content: space-between; font-size: 12px; padding: 4px 0; border-bottom: 1px solid #f0f0f0; }
                     .row:last-child { border-bottom: none; }
-                    .total-row { font-weight: 700; font-size: 15px; border-top: 2px solid #1A1A1A; padding-top: 10px; margin-top: 6px; }
-                    address { font-style: normal; font-size: 13px; line-height: 1.8; color: #444; }
-                    .footer { margin-top: 40px; text-align: center; font-size: 11px; color: #999; }
-                    @media print { body { padding: 20px; } }
+                    .total-row { font-weight: 700; font-size: 14px; border-top: 2px solid #1A1A1A; padding-top: 8px; margin-top: 4px; }
+                    address { font-style: normal; font-size: 12px; line-height: 1.5; color: #444; }
+                    .footer { margin-top: 25px; text-align: center; font-size: 10px; color: #999; }
+                    @media print { 
+                        body { width: 80mm; }
+                        .no-print { display: none; }
+                    }
                 </style>
             </head>
             <body>
-                <h1>PERFUME BUDGET</h1>
-                <div class="sub">Order Receipt · ${new Date(order.orderDate).toLocaleString()}</div>
+                <div class="receipt-content">
+                    <h1>PERFUME BUDGET</h1>
+                    <div class="sub">Order Receipt · ${new Date(order.orderDate).toLocaleString()}</div>
 
                 <div class="section">
                     <div class="section-title">Order Info</div>
