@@ -9,6 +9,7 @@ import { deliveryDetailService } from '../services/deliveryDetailService';
 import { cartService } from '../services/cartService';
 import { taxService } from '../services/taxService';
 import { useCart } from '../contexts/CartContext';
+import { useAuth } from '../contexts/AuthContext';
 import type { DeliveryDetailResponse, DeliveryDetailRequest, AddressLabel, TaxCalculationResult } from '../types';
 import toast from 'react-hot-toast';
 import { extractErrorMessage } from '../utils';
@@ -26,12 +27,13 @@ const emptyAddress: DeliveryDetailRequest = {
   region: '',
   landmark: '',
   label: 'HOME' as AddressLabel,
-  isDefault: false,
+  isDefault: true,
 };
 
 export const Checkout = () => {
   const navigate = useNavigate();
   const { totalPrice, refreshCart } = useCart();
+  const { user } = useAuth();
 
   const [addresses, setAddresses] = useState<DeliveryDetailResponse[]>([]);
   const [selectedAddressId, setSelectedAddressId] = useState<number | null>(null);
@@ -191,7 +193,10 @@ export const Checkout = () => {
             )}
 
             <button
-              onClick={() => setIsModalOpen(true)}
+              onClick={() => {
+                setFormData({ ...emptyAddress, recipientName: user?.fullName || '' });
+                setIsModalOpen(true);
+              }}
               className="mt-3 flex items-center gap-2 text-sm font-bold text-[#666666] dark:text-zinc-400 hover:text-[#1A1A1A] dark:hover:text-white transition-colors"
             >
               <Plus className="h-4 w-4" /> Add new address

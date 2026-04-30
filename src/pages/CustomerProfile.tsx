@@ -37,7 +37,7 @@ const emptyAddress: DeliveryDetailRequest = {
   region: '',
   landmark: '',
   label: 'HOME' as AddressLabel,
-  isDefault: false,
+  isDefault: true,
 };
 
 const STATUS_COLORS: Record<string, string> = {
@@ -111,7 +111,7 @@ export const CustomerProfile = () => {
   // Address modal helpers
   const openAddModal = () => {
     setEditingAddress(null);
-    setAddressForm(emptyAddress);
+    setAddressForm({ ...emptyAddress, recipientName: user?.fullName || '' });
     setIsAddressModalOpen(true);
   };
 
