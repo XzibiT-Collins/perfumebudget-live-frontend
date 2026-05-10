@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { Plus, MapPin, Check } from 'lucide-react';
@@ -45,6 +45,7 @@ export const Checkout = () => {
   const [taxResult, setTaxResult] = useState<TaxCalculationResult | null>(null);
   const [isTaxLoading, setIsTaxLoading] = useState(false);
   const [couponError, setCouponError] = useState<string | null>(null);
+  const taxRequestIdRef = useRef(0);
 
   useEffect(() => {
     deliveryDetailService.getMyAddresses().then((data) => {
@@ -62,15 +63,18 @@ export const Checkout = () => {
     if (isNaN(subtotal) || subtotal <= 0) return;
 
     const effectiveCouponInput = couponCode.trim() || undefined;
+    const requestId = ++taxRequestIdRef.current;
 
     const timer = window.setTimeout(() => {
       setIsTaxLoading(true);
       taxService.calculateTax(subtotal, effectiveCouponInput)
         .then((res) => {
+          if (taxRequestIdRef.current !== requestId) return;
           setTaxResult(res);
           setCouponError(null);
         })
         .catch((err) => {
+          if (taxRequestIdRef.current !== requestId) return;
           setTaxResult(null);
           if (effectiveCouponInput) {
             setCouponError(extractErrorMessage(err, 'Invalid or expired coupon'));
@@ -78,7 +82,11 @@ export const Checkout = () => {
             setCouponError(null);
           }
         })
-        .finally(() => setIsTaxLoading(false));
+        .finally(() => {
+          if (taxRequestIdRef.current === requestId) {
+            setIsTaxLoading(false);
+          }
+        });
     }, effectiveCouponInput ? 300 : 0);
 
     return () => window.clearTimeout(timer);
@@ -217,7 +225,7 @@ export const Checkout = () => {
                   </div>
                 ))}
               </div>
-            ) : taxResult && taxResult.orderTaxes.length > 0 ? (
+            ) : taxResult ? (
               <>
                 {taxResult.orderTaxes.map((tax) => (
                   <div key={tax.id} className="flex justify-between">
