@@ -55,41 +55,33 @@ export const Checkout = () => {
     }).catch(() => { }).finally(() => setIsAddressLoading(false));
   }, []);
 
-  // Fetch tax breakdown whenever subtotal changes or coupon reaches valid state
+  // Fetch tax breakdown whenever subtotal changes or the coupon code changes.
   useEffect(() => {
     if (!totalPrice) return;
     const subtotal = parseFloat(totalPrice.replace(/[^0-9.]/g, ''));
     if (isNaN(subtotal) || subtotal <= 0) return;
 
-    // Trigger logic: 
-    // 1. If empty, calculate normal tax.
-    // 2. If exactly 8, calculate tax + discount.
-    // 3. Otherwise (1-7 or >8), show validation error and SKIP API.
-    
-    if (couponCode.length > 0 && couponCode.length !== 8) {
-      setCouponError('Coupon must be 8 characters');
-      // We don't clear taxResult immediately to avoid flickering, 
-      // but we skip the API call.
-      return;
-    }
+    const effectiveCouponInput = couponCode.trim() || undefined;
 
-    const effectiveCouponInput = couponCode.length === 8 ? couponCode : undefined;
-
-    setIsTaxLoading(true);
-    taxService.calculateTax(subtotal, effectiveCouponInput)
-      .then((res) => {
-        setTaxResult(res);
-        setCouponError(null);
-      })
-      .catch((err) => {
-        setTaxResult(null);
-        if (effectiveCouponInput) {
-          setCouponError(extractErrorMessage(err, 'Invalid or expired coupon'));
-        } else {
+    const timer = window.setTimeout(() => {
+      setIsTaxLoading(true);
+      taxService.calculateTax(subtotal, effectiveCouponInput)
+        .then((res) => {
+          setTaxResult(res);
           setCouponError(null);
-        }
-      })
-      .finally(() => setIsTaxLoading(false));
+        })
+        .catch((err) => {
+          setTaxResult(null);
+          if (effectiveCouponInput) {
+            setCouponError(extractErrorMessage(err, 'Invalid or expired coupon'));
+          } else {
+            setCouponError(null);
+          }
+        })
+        .finally(() => setIsTaxLoading(false));
+    }, effectiveCouponInput ? 300 : 0);
+
+    return () => window.clearTimeout(timer);
   }, [totalPrice, couponCode]);
 
   const handleAddAddress = async (e: React.FormEvent) => {
@@ -113,7 +105,7 @@ export const Checkout = () => {
     }
     setIsCheckingOut(true);
     try {
-      const paystack = await cartService.checkout(couponCode || undefined);
+      const paystack = await cartService.checkout(couponCode.trim() || undefined);
       // Redirect to Paystack
       window.location.href = paystack.data.authorization_url;
     } catch (err: any) {
@@ -258,11 +250,10 @@ export const Checkout = () => {
           {/* Coupon */}
           <div className="pt-2">
             <Input
-              placeholder="Enter 8-digit coupon"
+              placeholder="Enter coupon code"
               value={couponCode}
               onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
               error={couponError || undefined}
-              maxLength={8}
               className="bg-[#F5F5F5] dark:bg-zinc-800 border-none h-11"
             />
           </div>
@@ -271,7 +262,7 @@ export const Checkout = () => {
             className="w-full h-12 rounded-2xl"
             onClick={handleCheckout}
             isLoading={isCheckingOut}
-            disabled={!selectedAddressId || !!couponError || (couponCode.length > 0 && couponCode.length !== 8)}
+            disabled={!selectedAddressId || !!couponError}
           >
             Pay with Paystack
           </Button>
