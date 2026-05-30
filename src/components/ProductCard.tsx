@@ -41,9 +41,9 @@ export const ProductCard = ({ product, disableAnimation = false }: ProductCardPr
       initial={disableAnimation ? false : { opacity: 0, y: 20 }}
       whileInView={disableAnimation ? false : { opacity: 1, y: 0 }}
       viewport={{ once: true }}
-      className="group relative bg-white dark:bg-zinc-900 rounded-2xl overflow-hidden card-shadow transition-all duration-300 hover:-translate-y-1 border border-transparent dark:border-zinc-800"
+      className="group relative bg-white dark:bg-zinc-900 rounded-2xl overflow-hidden card-shadow transition-all duration-300 hover:-translate-y-1 border border-transparent dark:border-zinc-800 flex flex-col h-full"
     >
-      <Link to={`/products/${product.slug}`}>
+      <Link to={`/products/${product.slug}`} className="flex flex-col flex-1 h-full">
         <div className="aspect-[4/5] overflow-hidden bg-[#FDFBFB] dark:bg-zinc-950 relative">
           {product.productImageUrl ? (
             <img
@@ -70,7 +70,7 @@ export const ProductCard = ({ product, disableAnimation = false }: ProductCardPr
           )}
         </div>
 
-        <div className="p-3 sm:p-5 flex flex-col h-full">
+        <div className="p-3 sm:p-5 flex flex-col flex-1">
           <div className="mb-2">
             <p className="text-[10px] font-bold uppercase tracking-widest text-[#999999] dark:text-zinc-500 mb-1">
               {product.categoryName}
