@@ -120,11 +120,21 @@ export const OrderDetail = () => {
 
                     <div class="section">
                     <div class="section-title">Summary</div>
-                    <div class="row"><span>Subtotal</span><span>${order.subtotal}</span></div>
-                    ${parseFloat(order.discountAmount.replace(/[^0-9.]/g, '')) > 0 ? `<div class="row"><span>Discount</span><span>-${order.discountAmount}</span></div>` : ''}
+                    <div class="row">
+                      <span>Subtotal</span>
+                      <span>
+                        ${order.originalSubtotal && order.originalSubtotal !== order.subtotal
+                          ? `<span style="text-decoration:line-through;color:#999;margin-right:4px">${order.originalSubtotal}</span>`
+                          : ''}
+                        ${order.subtotal}
+                      </span>
+                    </div>
+                    ${order.automaticDiscountAmount && parseFloat(order.automaticDiscountAmount.replace(/[^0-9.]/g, '')) > 0 ? `<div class="row"><span>Auto Discount</span><span style="color:#e33">-${order.automaticDiscountAmount}</span></div>` : ''}
+                    ${parseFloat(order.discountAmount.replace(/[^0-9.]/g, '')) > 0 ? `<div class="row"><span>Coupon Discount</span><span>-${order.discountAmount}</span></div>` : ''}
                     ${order.taxes ? order.taxes.orderTaxes.map(t => `<div class="row"><span>${t.taxName} (${t.taxRate}%)</span><span>GHS ${t.taxAmount.toFixed(2)}</span></div>`).join('') : ''}
                     ${order.taxes ? `<div class="row"><span>Total Tax</span><span>${order.taxes.totalTaxAmount}</span></div>` : ''}
                     <div class="row total-row"><span>Grand Total</span><span>${order.taxes ? order.taxes.totalAmountAfterTax : order.totalAmount}</span></div>
+                    ${order.automaticDiscountAmount && parseFloat(order.automaticDiscountAmount.replace(/[^0-9.]/g, '')) > 0 ? `<div style="margin-top:8px;padding:6px 8px;background:#f0fff4;border-radius:6px;font-size:11px;color:#16a34a;font-weight:700;text-align:center">Customer saved ${order.automaticDiscountAmount} on this order!</div>` : ''}
                 </div>
 
                 <div class="footer">Thank you for shopping with PerfumeBudget &mdash; ${new Date().getFullYear()}</div>
@@ -227,13 +237,26 @@ export const OrderDetail = () => {
                         </div>
 
                         <div className="mt-8 pt-8 border-t border-[#F5F5F5] dark:border-zinc-800 space-y-4">
+                            {/* Subtotal — strike through original when an automatic discount applied */}
                             <div className="flex justify-between text-[#666666] dark:text-zinc-400">
                                 <span>Subtotal</span>
-                                <span>{formatPrice(order.subtotal)}</span>
+                                <div className="text-right">
+                                    {order.originalSubtotal && order.originalSubtotal !== order.subtotal && (
+                                        <p className="text-xs text-zinc-400 line-through">{formatPrice(order.originalSubtotal)}</p>
+                                    )}
+                                    <span>{formatPrice(order.subtotal)}</span>
+                                </div>
                             </div>
+                            {/* Automatic product/shop-wide discount */}
+                            {order.automaticDiscountAmount && parseFloat(order.automaticDiscountAmount.replace(/[^0-9.]/g, '')) > 0 && (
+                                <div className="flex justify-between text-[#666666] dark:text-zinc-400">
+                                    <span>Auto Discount</span>
+                                    <span className="text-red-500">-{formatPrice(order.automaticDiscountAmount)}</span>
+                                </div>
+                            )}
                             {parseFloat(order.discountAmount.replace(/[^0-9.]/g, '')) > 0 && (
                                 <div className="flex justify-between text-[#666666] dark:text-zinc-400">
-                                    <span>Discount</span>
+                                    <span>Coupon Discount</span>
                                     <span className="text-red-500">-{formatPrice(order.discountAmount)}</span>
                                 </div>
                             )}
@@ -255,6 +278,14 @@ export const OrderDetail = () => {
                                     {order.taxes ? order.taxes.totalAmountAfterTax : formatPrice(order.totalAmount)}
                                 </span>
                             </div>
+                            {/* Savings banner */}
+                            {order.automaticDiscountAmount && parseFloat(order.automaticDiscountAmount.replace(/[^0-9.]/g, '')) > 0 && (
+                                <div className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-800">
+                                    <span className="text-green-600 dark:text-green-400 text-sm font-bold">
+                                        Customer saved {formatPrice(order.automaticDiscountAmount)} on this order!
+                                    </span>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

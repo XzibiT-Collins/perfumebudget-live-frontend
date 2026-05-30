@@ -119,15 +119,32 @@ export const ProductDetails = () => {
           </p>
 
           {/* Name */}
-          <h1 className="text-2xl font-serif font-bold dark:text-white leading-tight">
+          <h1 className="text-2xl font-sans font-bold dark:text-white leading-tight">
             {product.productName}
           </h1>
 
           {/* Price + badges on the same row */}
-          <div className="flex items-center gap-3">
-            <span className="text-2xl font-bold dark:text-white">{product.sellingPrice}</span>
-            {product.isOutOfStock && <Badge variant="default">Out of Stock</Badge>}
-            {product.isFeatured && !product.isOutOfStock && <Badge variant="success">Featured</Badge>}
+          <div className="flex flex-col gap-1">
+            <div className="flex items-baseline gap-2">
+              <span className="text-2xl font-bold dark:text-white">{product.sellingPrice}</span>
+              {product.onSale && (
+                <>
+                  <span className="text-sm text-zinc-400 line-through">{product.originalPrice}</span>
+                  <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 px-1.5 py-0.5 rounded">
+                    {Math.round(product.discountPercentage)}% OFF
+                  </span>
+                </>
+              )}
+            </div>
+            {product.onSale && product.discountEndsAt && (
+              <p className="text-[10px] font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider">
+                Offer ends: {new Date(product.discountEndsAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+              </p>
+            )}
+            <div className="flex items-center gap-2 mt-1">
+              {product.isOutOfStock && <Badge variant="default">Out of Stock</Badge>}
+              {product.isFeatured && !product.isOutOfStock && <Badge variant="success">Featured</Badge>}
+            </div>
           </div>
 
           {/* Short description — brief, above the CTA */}
@@ -219,7 +236,7 @@ export const ProductDetails = () => {
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#999999] mb-2">
               {product.category}
             </p>
-            <h1 className="text-4xl font-serif font-bold dark:text-white mb-3">
+            <h1 className="text-4xl font-sans font-bold dark:text-white mb-3">
               {product.productName}
             </h1>
             <p className="text-[#666666] dark:text-zinc-400 leading-relaxed">
@@ -228,10 +245,27 @@ export const ProductDetails = () => {
           </div>
 
           {/* Price */}
-          <div className="flex items-baseline gap-3">
-            <span className="text-3xl font-bold dark:text-white">{product.sellingPrice}</span>
-            {product.isOutOfStock && <Badge variant="default">Out of Stock</Badge>}
-            {product.isFeatured && !product.isOutOfStock && <Badge variant="success">Featured</Badge>}
+          <div className="flex flex-col gap-1">
+            <div className="flex items-baseline gap-3">
+              <span className="text-3xl font-bold dark:text-white">{product.sellingPrice}</span>
+              {product.onSale && (
+                <>
+                  <span className="text-lg text-zinc-400 line-through">{product.originalPrice}</span>
+                  <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 px-2 py-0.5 rounded">
+                    {Math.round(product.discountPercentage)}% OFF
+                  </span>
+                </>
+              )}
+            </div>
+            {product.onSale && product.discountEndsAt && (
+              <p className="text-xs font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider">
+                Special offer ends: {new Date(product.discountEndsAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+              </p>
+            )}
+            <div className="flex items-center gap-2 mt-1">
+              {product.isOutOfStock && <Badge variant="default">Out of Stock</Badge>}
+              {product.isFeatured && !product.isOutOfStock && <Badge variant="success">Featured</Badge>}
+            </div>
           </div>
 
           {/* Full description */}

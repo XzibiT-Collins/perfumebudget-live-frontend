@@ -115,13 +115,23 @@ export const WalkInOrderDetail = () => {
                 </div>
 
                 <div class="section">
-                    <div class="row"><span>Subtotal</span><span>${order.subtotal}</span></div>
-                    ${parseFloat(order.discountAmount.replace(/[^0-9.]/g, '')) > 0 ? `<div class="row"><span>Discount</span><span>-${order.discountAmount}</span></div>` : ''}
+                    <div class="row">
+                      <span>Subtotal</span>
+                      <span>
+                        ${order.originalSubtotal && order.originalSubtotal !== order.subtotal
+                          ? `<span style="text-decoration:line-through;color:#999;margin-right:4px">${order.originalSubtotal}</span>`
+                          : ''}
+                        ${order.subtotal}
+                      </span>
+                    </div>
+                    ${order.automaticDiscountAmount && parseFloat(order.automaticDiscountAmount.replace(/[^0-9.]/g, '')) > 0 ? `<div class="row"><span>Auto Discount</span><span style="color:#e33">-${order.automaticDiscountAmount}</span></div>` : ''}
+                    ${parseFloat(order.discountAmount.replace(/[^0-9.]/g, '')) > 0 ? `<div class="row"><span>Manual Discount</span><span>-${order.discountAmount}</span></div>` : ''}
                     <div class="row"><span>Tax</span><span>${order.totalTaxAmount}</span></div>
                     <div class="row total-row"><span>Total</span><span>${order.totalAmount}</span></div>
                     <div class="row"><span>Method</span><span>${order.paymentMethod}</span></div>
                     <div class="row"><span>Paid</span><span>${order.amountPaid}</span></div>
                     ${parseFloat(order.changeGiven.replace(/[^0-9.]/g, '')) > 0 ? `<div class="row"><span>Change</span><span>${order.changeGiven}</span></div>` : ''}
+                    ${order.automaticDiscountAmount && parseFloat(order.automaticDiscountAmount.replace(/[^0-9.]/g, '')) > 0 ? `<div style="margin-top:8px;padding:6px 8px;background:#f0fff4;border-radius:6px;font-size:11px;color:#16a34a;font-weight:700;text-align:center">Customer saved ${order.automaticDiscountAmount}!</div>` : ''}
                 </div>
 
                 <div class="footer">
@@ -156,7 +166,7 @@ export const WalkInOrderDetail = () => {
                 <div className="h-20 w-20 rounded-full bg-red-50 dark:bg-red-900/20 flex items-center justify-center text-red-500 mb-6">
                     <ShieldAlert className="h-10 w-10" />
                 </div>
-                <h2 className="text-2xl font-serif font-bold dark:text-white mb-2">Access Restricted</h2>
+                <h2 className="text-2xl font-sans font-bold dark:text-white mb-2">Access Restricted</h2>
                 <p className="text-[#666666] dark:text-zinc-400 max-w-md mx-auto">
                     You do not have permission to view walk-in order details.
                 </p>
@@ -250,13 +260,26 @@ export const WalkInOrderDetail = () => {
                         </div>
 
                         <div className="mt-8 pt-8 border-t border-[#F5F5F5] dark:border-zinc-800 space-y-4">
+                            {/* Subtotal — strike through original when an automatic discount applied */}
                             <div className="flex justify-between text-[#666666] dark:text-zinc-400">
                                 <span>Subtotal</span>
-                                <span className="font-bold dark:text-white">{order.subtotal}</span>
+                                <div className="text-right">
+                                    {order.originalSubtotal && order.originalSubtotal !== order.subtotal && (
+                                        <p className="text-xs text-zinc-400 line-through">{order.originalSubtotal}</p>
+                                    )}
+                                    <span className="font-bold dark:text-white">{order.subtotal}</span>
+                                </div>
                             </div>
+                            {/* Automatic product/shop-wide discount */}
+                            {order.automaticDiscountAmount && parseFloat(order.automaticDiscountAmount.replace(/[^0-9.]/g, '')) > 0 && (
+                                <div className="flex justify-between text-[#666666] dark:text-zinc-400">
+                                    <span>Auto Discount</span>
+                                    <span className="font-bold text-red-500">-{order.automaticDiscountAmount}</span>
+                                </div>
+                            )}
                             {parseFloat(order.discountAmount.replace(/[^0-9.]/g, '')) > 0 && (
                                 <div className="flex justify-between text-[#666666] dark:text-zinc-400">
-                                    <span>Discount</span>
+                                    <span>Manual Discount</span>
                                     <span className="font-bold text-red-500">-{order.discountAmount}</span>
                                 </div>
                             )}
@@ -270,6 +293,14 @@ export const WalkInOrderDetail = () => {
                                     {order.totalAmount}
                                 </span>
                             </div>
+                            {/* Savings banner */}
+                            {order.automaticDiscountAmount && parseFloat(order.automaticDiscountAmount.replace(/[^0-9.]/g, '')) > 0 && (
+                                <div className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-800">
+                                    <span className="text-green-600 dark:text-green-400 text-sm font-bold">
+                                        Customer saved {order.automaticDiscountAmount} on this purchase!
+                                    </span>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

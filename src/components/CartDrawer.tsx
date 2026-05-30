@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, ShoppingBag, Trash2, Minus, Plus, ArrowRight, Box } from 'lucide-react';
+import { X, ShoppingBag, Trash2, Minus, Plus, ArrowRight, Box, Tag } from 'lucide-react';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
 import { Button } from './Button';
@@ -9,7 +9,7 @@ import { formatPrice, parsePrice } from '../utils';
 
 export const CartDrawer = () => {
   const { user } = useAuth();
-  const { cartItems, localItems, totalPrice, isCartOpen, setIsCartOpen, removeItem, updateQuantity } = useCart();
+  const { cartItems, localItems, totalPrice, originalTotalPrice, isCartOpen, setIsCartOpen, removeItem, updateQuantity } = useCart();
 
   // Normalise to a common display shape
   const items = user
@@ -18,6 +18,9 @@ export const CartDrawer = () => {
       name: i.productName,
       imageUrl: i.productImageUrl,
       price: i.unitPrice,
+      originalPrice: i.originalUnitPrice,
+      onSale: i.onSale,
+      discountPercentage: i.discountPercentage,
       quantity: i.quantity,
     }))
     : localItems.map((i) => ({
@@ -25,12 +28,17 @@ export const CartDrawer = () => {
       name: i.productName,
       imageUrl: i.productImageUrl,
       price: i.unitPrice,
+      originalPrice: i.unitPrice,
+      onSale: false,
+      discountPercentage: 0,
       quantity: i.quantity,
     }));
 
   const subtotal = user
     ? totalPrice
     : formatPrice(localItems.reduce((s, i) => s + parsePrice(i.unitPrice) * i.quantity, 0));
+  const anyOnSale = user ? cartItems.some(i => i.onSale) : false;
+  const originalSubtotal = user && anyOnSale ? originalTotalPrice : null;
 
   return (
     <AnimatePresence>
@@ -56,7 +64,7 @@ export const CartDrawer = () => {
             <div className="p-6 border-b border-[#F5F5F5] dark:border-zinc-800 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <ShoppingBag className="h-5 w-5 dark:text-white" />
-                <h2 className="text-xl font-serif font-bold dark:text-white">Your Bag</h2>
+                <h2 className="text-xl font-sans font-bold dark:text-white">Your Bag</h2>
               </div>
               <button
                 onClick={() => setIsCartOpen(false)}
@@ -106,7 +114,17 @@ export const CartDrawer = () => {
                               <Trash2 className="h-4 w-4" />
                             </button>
                           </div>
-                          <p className="text-xs text-[#999999] dark:text-zinc-500 mt-1">{item.price} each</p>
+                          <div className="flex items-center gap-1 flex-wrap mt-1">
+                          <p className="text-xs text-[#999999] dark:text-zinc-500">{item.price} each</p>
+                          {item.onSale && (
+                            <>
+                              <p className="text-xs text-zinc-400 line-through">{item.originalPrice}</p>
+                              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 text-[10px] font-bold">
+                                <Tag className="h-2.5 w-2.5" />{Math.round(item.discountPercentage)}% off
+                              </span>
+                            </>
+                          )}
+                        </div>
                         </div>
                         <div className="flex items-center justify-between">
                           <div className="flex items-center border border-[#E5E5E5] dark:border-zinc-800 rounded-full px-1 py-0.5 bg-white dark:bg-zinc-900">
@@ -139,7 +157,12 @@ export const CartDrawer = () => {
               <div className="p-6 border-t border-[#F5F5F5] dark:border-zinc-800 space-y-4">
                 <div className="flex justify-between items-end">
                   <span className="text-sm text-[#666666] dark:text-zinc-400">Subtotal</span>
-                  <span className="text-xl font-bold dark:text-white">{subtotal}</span>
+                  <div className="text-right">
+                    <span className="text-xl font-bold dark:text-white">{subtotal}</span>
+                    {originalSubtotal && (
+                      <p className="text-xs text-zinc-400 line-through">{originalSubtotal}</p>
+                    )}
+                  </div>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <Link to="/cart" className="w-full" onClick={() => setIsCartOpen(false)}>

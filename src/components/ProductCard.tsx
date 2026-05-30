@@ -44,7 +44,7 @@ export const ProductCard = ({ product, disableAnimation = false }: ProductCardPr
       className="group relative bg-white dark:bg-zinc-900 rounded-2xl overflow-hidden card-shadow transition-all duration-300 hover:-translate-y-1 border border-transparent dark:border-zinc-800"
     >
       <Link to={`/products/${product.slug}`}>
-        <div className="aspect-[4/5] overflow-hidden bg-[#FDFBFB] dark:bg-zinc-950">
+        <div className="aspect-[4/5] overflow-hidden bg-[#FDFBFB] dark:bg-zinc-950 relative">
           {product.productImageUrl ? (
             <img
               src={product.productImageUrl}
@@ -59,8 +59,13 @@ export const ProductCard = ({ product, disableAnimation = false }: ProductCardPr
             </div>
           )}
           {product.isOutOfStock && (
-            <div className="absolute top-4 left-4">
+            <div className="absolute top-4 left-4 z-10">
               <Badge variant="default">Out of Stock</Badge>
+            </div>
+          )}
+          {product.onSale && !product.isOutOfStock && (
+            <div className="absolute top-4 left-4 z-10">
+              <Badge variant="success">Sale</Badge>
             </div>
           )}
         </div>
@@ -70,13 +75,24 @@ export const ProductCard = ({ product, disableAnimation = false }: ProductCardPr
             <p className="text-[10px] font-bold uppercase tracking-widest text-[#999999] dark:text-zinc-500 mb-1">
               {product.categoryName}
             </p>
-            <h3 className="text-sm font-serif font-bold text-[#1A1A1A] dark:text-white line-clamp-2 group-hover:text-accent-dark transition-colors">
+            <h3 className="text-sm font-sans font-bold text-[#1A1A1A] dark:text-white line-clamp-2 group-hover:text-accent-dark transition-colors">
               {product.productName}
             </h3>
           </div>
 
           <div className="mt-auto">
-            <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{product.price}</p>
+            <div className="flex flex-wrap items-baseline gap-1.5 sm:gap-2">
+              <span className="text-sm font-bold text-zinc-900 dark:text-zinc-100">{product.price}</span>
+              {product.onSale && (
+                <>
+                  <span className="text-xs text-zinc-400 line-through">{product.originalPrice}</span>
+                  <span className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 px-1 py-0.5 rounded">
+                    {Math.round(product.discountPercentage)}% OFF
+                  </span>
+                </>
+              )}
+            </div>
+
 
             <div className="hidden sm:flex items-center justify-between mt-4 pt-4 border-t border-gray-100 dark:border-zinc-800">
               <p className="text-xs text-[#666666] dark:text-zinc-400">

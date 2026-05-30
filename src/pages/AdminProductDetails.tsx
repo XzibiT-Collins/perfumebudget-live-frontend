@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion } from 'motion/react';
-import { ArrowLeft, Box, Plus, History, List, Settings2 } from 'lucide-react';
+import { ArrowLeft, Box, Plus, History, List, Settings2, Tag, Percent, Calendar } from 'lucide-react';
 import { Button } from '../components/Button';
 import { Badge } from '../components/Badge';
 import { Input } from '../components/Input';
 import { Dropdown } from '../components/Dropdown';
 import { Modal } from '../components/Modal';
+import { ConfirmModal } from '../components/ConfirmModal';
 import { productService } from '../services/productService';
 import inventoryService from '../services/inventoryService';
 import type { 
@@ -60,6 +61,16 @@ export const AdminProductDetails = () => {
     reference: '',
     note: '',
   });
+
+  // Discount states
+  const [isDiscountModalOpen, setIsDiscountModalOpen] = useState(false);
+  const [isConfirmClearDiscountOpen, setIsConfirmClearDiscountOpen] = useState(false);
+  const [discountType, setDiscountType] = useState<'PERCENTAGE' | 'FLAT'>('PERCENTAGE');
+  const [discountValue, setDiscountValue] = useState('');
+  const [discountStart, setDiscountStart] = useState('');
+  const [discountEnd, setDiscountEnd] = useState('');
+  const [isSettingDiscount, setIsSettingDiscount] = useState(false);
+  const [isClearingDiscount, setIsClearingDiscount] = useState(false);
 
   const loadProduct = () => {
     if (!productId) return;
@@ -186,6 +197,80 @@ export const AdminProductDetails = () => {
       toast.error(err?.response?.data?.description || 'Conversion failed. Please check rules.');
     } finally {
       setIsConverting(false);
+    }
+  };
+
+  const handleClearDiscount = async () => {
+    if (!product) return;
+    setIsClearingDiscount(true);
+    toast.loading('Clearing discount...', { id: 'clear-discount' });
+    try {
+      await productService.clearDiscount(product.productId);
+      toast.success('Discount cleared successfully', { id: 'clear-discount' });
+      setIsConfirmClearDiscountOpen(false);
+      loadProduct();
+    } catch (err: any) {
+      toast.error(err?.response?.data?.description || 'Failed to clear discount', { id: 'clear-discount' });
+    } finally {
+      setIsClearingDiscount(false);
+    }
+  };
+
+  const handleSetDiscount = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!product) return;
+
+    const val = parseFloat(discountValue);
+    if (isNaN(val) || val <= 0) {
+      toast.error('Discount value must be greater than 0');
+      return;
+    }
+
+    if (discountType === 'PERCENTAGE' && val > 100) {
+      toast.error('Percentage discount value cannot exceed 100%');
+      return;
+    }
+
+    const baseSellingPrice = parseFloat(product.sellingPrice.replace(/[^0-9.]/g, ''));
+    if (discountType === 'FLAT' && val >= baseSellingPrice) {
+      toast.error(`Flat discount cannot exceed or equal the selling price (${product.sellingPrice})`);
+      return;
+    }
+
+    if (!discountStart || !discountEnd) {
+      toast.error('Start and end date are required');
+      return;
+    }
+
+    const start = new Date(discountStart);
+    const end = new Date(discountEnd);
+    if (end <= start) {
+      toast.error('End date must be after the start date');
+      return;
+    }
+
+    setIsSettingDiscount(true);
+    try {
+      const formattedStart = discountStart.includes(':00') ? discountStart : `${discountStart}:00`;
+      const formattedEnd = discountEnd.includes(':00') ? discountEnd : `${discountEnd}:00`;
+
+      await productService.setDiscount(product.productId, {
+        discountType,
+        discountValue: val,
+        startAt: formattedStart,
+        endAt: formattedEnd,
+      });
+
+      toast.success('Discount applied successfully');
+      setIsDiscountModalOpen(false);
+      setDiscountValue('');
+      setDiscountStart('');
+      setDiscountEnd('');
+      loadProduct();
+    } catch (err: any) {
+      toast.error(err?.response?.data?.description || 'Failed to apply discount');
+    } finally {
+      setIsSettingDiscount(false);
     }
   };
 
@@ -521,6 +606,63 @@ export const AdminProductDetails = () => {
     </Modal>
   );
 
+  const renderDiscountModal = () => (
+    <Modal isOpen={isDiscountModalOpen} onClose={() => setIsDiscountModalOpen(false)} title="Set Sale Discount">
+      <form onSubmit={handleSetDiscount} className="space-y-4">
+        <div>
+          <label className="block text-xs font-bold uppercase tracking-widest text-[#999999] mb-2">Discount Type</label>
+          <Dropdown
+            value={discountType}
+            onChange={(val) => {
+              setDiscountType(val as 'PERCENTAGE' | 'FLAT');
+              setDiscountValue('');
+            }}
+            options={[
+              { label: 'Percentage (%)', value: 'PERCENTAGE' },
+              { label: 'Flat Amount', value: 'FLAT' },
+            ]}
+          />
+        </div>
+
+        <Input 
+          label={discountType === 'PERCENTAGE' ? "Discount Percentage (e.g. 15 for 15%)" : `Flat Discount Amount (${product?.sellingPrice?.split(' ')[0] ?? ''})`}
+          type="number" 
+          step="0.01" 
+          value={discountValue} 
+          onChange={(e) => setDiscountValue(e.target.value)} 
+          required 
+          placeholder={discountType === 'PERCENTAGE' ? "e.g. 15" : "e.g. 40"}
+        />
+
+        <div className="grid grid-cols-2 gap-4">
+          <Input 
+            label="Start Date" 
+            type="datetime-local" 
+            value={discountStart} 
+            onChange={(e) => setDiscountStart(e.target.value)} 
+            required 
+          />
+          <Input 
+            label="End Date" 
+            type="datetime-local" 
+            value={discountEnd} 
+            onChange={(e) => setDiscountEnd(e.target.value)} 
+            required 
+          />
+        </div>
+
+        <div className="p-3 bg-zinc-50 dark:bg-zinc-800 rounded-xl flex gap-2.5 items-start text-[11px] text-zinc-500 leading-normal">
+          <Calendar className="h-4 w-4 shrink-0 text-accent-dark" />
+          <span>The discount will apply dynamically. When active, it wins over shop-wide sales. Coupons cannot stack with this sale.</span>
+        </div>
+
+        <Button type="submit" isLoading={isSettingDiscount} className="w-full h-12 rounded-2xl">
+          Apply Discount
+        </Button>
+      </form>
+    </Modal>
+  );
+
   if (isLoading) {
     return (
       <div className="p-8 animate-pulse">
@@ -589,6 +731,7 @@ export const AdminProductDetails = () => {
                   </Badge>
                   {product.isFeatured && <Badge variant="info">Featured</Badge>}
                   {product.isOutOfStock && <Badge variant="danger">Out of Stock</Badge>}
+                  {product.onSale && <Badge variant="success">Sale</Badge>}
                 </div>
               </div>
               
@@ -612,6 +755,14 @@ export const AdminProductDetails = () => {
               <div className="text-right">
                 <p className="text-xs font-bold uppercase tracking-widest text-[#999999] mb-1">Active Selling Price</p>
                 <p className="text-2xl font-bold text-accent-dark">{product.sellingPrice}</p>
+                {product.onSale && (
+                  <div className="flex flex-col items-end mt-1">
+                    <p className="text-xs text-zinc-400 line-through">Original: {product.originalPrice}</p>
+                    <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold bg-emerald-50 dark:bg-emerald-950/20 px-1.5 py-0.5 rounded w-fit mt-0.5">
+                      {Math.round(product.discountPercentage)}% OFF
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
             
@@ -713,6 +864,70 @@ export const AdminProductDetails = () => {
                </div>
             </div>
           </div>
+
+          {/* Discount Management Section */}
+          <div className="bg-white dark:bg-zinc-900 rounded-3xl p-8 shadow-sm border border-black/5 dark:border-white/5">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h3 className="text-lg font-bold dark:text-white">Product Discount</h3>
+                <p className="text-sm text-[#666666] dark:text-zinc-400 mt-1">
+                  {product.onSale 
+                    ? 'Active product-specific discount is applied' 
+                    : 'Configure temporary product-specific discounts'}
+                </p>
+              </div>
+              <div className="flex gap-2">
+                {product.onSale && (
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setIsConfirmClearDiscountOpen(true)} 
+                    className="rounded-xl px-4 py-2 text-xs h-auto text-red-500 border-red-200 hover:bg-red-50 dark:hover:bg-red-950/20"
+                  >
+                    Clear Discount
+                  </Button>
+                )}
+                <Button 
+                  onClick={() => setIsDiscountModalOpen(true)} 
+                  className="rounded-xl px-4 py-2 text-xs h-auto"
+                >
+                  {product.onSale ? 'Change Discount' : 'Set Discount'}
+                </Button>
+              </div>
+            </div>
+
+            {product.onSale ? (
+              <div className="p-5 bg-emerald-50 dark:bg-emerald-950/10 border border-emerald-100 dark:border-emerald-950/20 rounded-2xl space-y-3">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-700 dark:text-emerald-400">Discount Value</p>
+                    <p className="text-lg font-bold dark:text-white">
+                      {product.discountPercentage ? `${Math.round(product.discountPercentage)}% OFF` : '—'}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-700 dark:text-emerald-400">Original Price</p>
+                    <p className="text-lg font-bold dark:text-white line-through text-zinc-400">{product.originalPrice}</p>
+                  </div>
+                </div>
+                {product.discountEndsAt && (
+                  <div className="pt-3 border-t border-emerald-100 dark:border-emerald-950/20 flex items-center gap-2 text-xs text-[#c084fc] dark:text-purple-400 font-bold uppercase tracking-wider">
+                    <Calendar className="h-4 w-4 shrink-0" />
+                    Sale Ends: {new Date(product.discountEndsAt).toLocaleString()}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="flex items-center gap-4 p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-2xl border border-zinc-100 dark:border-zinc-800">
+                <div className="h-10 w-10 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-600">
+                  <Tag className="h-5 w-5" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-bold dark:text-white">No active discount</p>
+                  <p className="text-xs text-[#666666] dark:text-zinc-400">Apply a promotional time-framed PERCENTAGE or FLAT discount to this product.</p>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
       
@@ -721,6 +936,16 @@ export const AdminProductDetails = () => {
       {renderSummaryModal()}
       {renderHistoryModal()}
       {renderConversionModal()}
+      {renderDiscountModal()}
+      <ConfirmModal
+        isOpen={isConfirmClearDiscountOpen}
+        onClose={() => setIsConfirmClearDiscountOpen(false)}
+        onConfirm={handleClearDiscount}
+        title="Clear Discount"
+        message={<>Are you sure you want to clear the active discount for <strong>{product.productName}</strong>?</>}
+        confirmLabel="Clear Discount"
+        isLoading={isClearingDiscount}
+      />
     </motion.div>
   );
 };

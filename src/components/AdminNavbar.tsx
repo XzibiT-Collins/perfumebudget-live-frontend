@@ -22,7 +22,8 @@ import {
   Calculator,
   BookOpen,
   CheckCheck,
-  Shield
+  Shield,
+  PercentCircle
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -39,6 +40,7 @@ const menuItems = [
   { icon: ShoppingCart, label: 'Orders', path: '/admin/orders' },
   { icon: ShoppingCart, label: 'Walk-In Orders', path: '/admin/walk-in' },
   { icon: Ticket, label: 'Coupons', path: '/admin/coupons' },
+  { icon: PercentCircle, label: 'Shop Discount', path: '/admin/shop-discount' },
   { icon: Users, label: 'Customers', path: '/admin/customers' },
   { icon: Receipt, label: 'Taxes', path: '/admin/taxes' },
   { icon: Calculator, label: 'Accounting', path: '/admin/accounting' },
@@ -93,7 +95,7 @@ export const AdminNavbar = () => {
             <Menu className="h-5 w-5 dark:text-white" />
           </button>
 
-          <Link to="/" className="text-xl font-serif font-bold tracking-tight text-zinc-900 dark:text-white">
+          <Link to="/" className="text-xl font-sans font-bold tracking-tight text-zinc-900 dark:text-white">
             PERFUME<span className="font-sans font-light text-accent-dark">BUDGET</span>
             <span className="ml-2 text-[10px] bg-accent text-[#1A1A1A] px-2 py-0.5 rounded-full uppercase tracking-widest font-sans font-bold">Admin</span>
           </Link>
@@ -281,7 +283,7 @@ export const AdminNavbar = () => {
           />
           <div className="absolute left-0 top-0 h-full w-64 bg-white dark:bg-zinc-950 shadow-2xl flex flex-col animate-in slide-in-from-left duration-300">
             <div className="p-6 border-b border-[#F5F5F5] dark:border-zinc-800 flex items-center justify-between">
-              <Link to="/" className="text-lg font-serif font-bold dark:text-white">
+              <Link to="/" className="text-lg font-sans font-bold dark:text-white">
                 PERFUME<span className="font-sans font-light text-accent-dark">BUDGET</span>
               </Link>
               <button onClick={() => setIsMobileMenuOpen(false)}>

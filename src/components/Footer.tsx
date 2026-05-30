@@ -6,7 +6,7 @@ export const Footer = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
           <div className="col-span-2 md:col-span-1">
-            <Link to="/" className="text-xl font-serif font-bold tracking-tight mb-4 block dark:text-white">
+            <Link to="/" className="text-xl font-sans font-bold tracking-tight mb-4 block dark:text-white">
               PERFUME<span className="font-sans font-light text-accent-dark">BUDGET</span>
             </Link>
             <p className="text-sm text-[#666666] dark:text-zinc-400 max-w-xs">

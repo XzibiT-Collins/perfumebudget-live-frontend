@@ -100,7 +100,7 @@ export const Navbar = () => {
 
             {/* Logo + desktop nav links */}
             <div className="flex items-center gap-8">
-              <Link to="/" className="text-xl font-serif font-bold tracking-tight text-zinc-900 dark:text-white">
+              <Link to="/" className="text-xl font-sans font-bold tracking-tight text-zinc-900 dark:text-white">
                 PERFUME<span className="font-sans font-light text-accent-dark">BUDGET</span>
               </Link>
               <div className="hidden md:flex items-center gap-6 text-sm font-medium text-[#666666] dark:text-zinc-400">

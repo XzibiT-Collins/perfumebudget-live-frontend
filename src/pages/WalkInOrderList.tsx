@@ -66,10 +66,6 @@ export const WalkInOrderList = () => {
       accessor: (o: WalkInOrderResponse) => o.customerName || 'Anonymous'
     },
     {
-      header: 'Date',
-      accessor: (o: WalkInOrderResponse) => new Date(o.createdAt).toLocaleDateString()
-    },
-    {
       header: 'Total',
       accessor: (o: WalkInOrderResponse) => formatPrice(o.totalAmount)
     },
@@ -93,6 +89,13 @@ export const WalkInOrderList = () => {
         </Badge>
       )
     },
+    {
+      header: 'Date',
+      accessor: (o: WalkInOrderResponse) => new Date(o.createdAt).toLocaleString(undefined, {
+        day: '2-digit', month: 'short', year: 'numeric',
+        hour: '2-digit', minute: '2-digit', hour12: true,
+      })
+    },
   ];
 
   const handleMarkPrinted = async (orderNumber: string) => {
@@ -111,7 +114,7 @@ export const WalkInOrderList = () => {
         <div className="h-20 w-20 rounded-full bg-red-50 dark:bg-red-900/20 flex items-center justify-center text-red-500 mb-6">
           <ShieldAlert className="h-10 w-10" />
         </div>
-        <h2 className="text-2xl font-serif font-bold dark:text-white mb-2">Access Restricted</h2>
+        <h2 className="text-2xl font-sans font-bold dark:text-white mb-2">Access Restricted</h2>
         <p className="text-[#666666] dark:text-zinc-400 max-w-md mx-auto">
           You do not have permission to view the walk-in order history. Please contact your administrator if you believe this is an error.
         </p>

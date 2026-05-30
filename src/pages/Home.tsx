@@ -100,7 +100,7 @@ export const Home = () => {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-end mb-10">
           <div>
-            <h2 className="text-3xl font-serif font-bold mb-2 dark:text-white">Curated Collections</h2>
+            <h2 className="text-3xl font-sans font-bold mb-2 dark:text-white">Curated Collections</h2>
             <p className="text-[#666666] dark:text-zinc-400">Find exactly what you're looking for.</p>
           </div>
           {categories.length > 0 && (
@@ -142,7 +142,7 @@ export const Home = () => {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-end mb-10">
           <div>
-            <h2 className="text-3xl font-serif font-bold mb-2 dark:text-white">Featured Pieces</h2>
+            <h2 className="text-3xl font-sans font-bold mb-2 dark:text-white">Featured Pieces</h2>
             <p className="text-[#666666] dark:text-zinc-400">Our most loved items this season.</p>
           </div>
           {featuredProducts.length > 0 && (
@@ -168,7 +168,7 @@ export const Home = () => {
           <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/20 rounded-full translate-y-1/2 -translate-x-1/2 blur-3xl" />
 
           <div className="relative z-10 max-w-2xl mx-auto">
-            <h2 className="text-4xl md:text-5xl font-serif font-bold mb-6">Join Our Olfactory Circle</h2>
+            <h2 className="text-4xl md:text-5xl font-sans font-bold mb-6">Join Our Olfactory Circle</h2>
             <p className="text-[#666666] mb-10">
               Subscribe to our newsletter for exclusive access to new releases, private sales, and expert fragrance guidance.
             </p>
