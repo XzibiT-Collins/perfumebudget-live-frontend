@@ -1,23 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion } from 'motion/react';
-import { ArrowLeft, Box, Plus, History, List, Settings2, Tag, Percent, Calendar } from 'lucide-react';
+import { ArrowLeft, Box, Plus, History, List, Settings2, Tag, Percent, Calendar, Warehouse, ArrowLeftRight, AlertTriangle, ArrowRight } from 'lucide-react';
 import { Button } from '../components/Button';
 import { Badge } from '../components/Badge';
 import { Input } from '../components/Input';
 import { Dropdown } from '../components/Dropdown';
 import { Modal } from '../components/Modal';
 import { ConfirmModal } from '../components/ConfirmModal';
+import { TransferForm } from '../components/TransferForm';
 import { productService } from '../services/productService';
 import inventoryService from '../services/inventoryService';
-import type { 
-  ProductDetails, 
-  ConversionResponse, 
+import locationInventoryService from '../services/locationInventoryService';
+import type {
+  ProductDetails,
+  ConversionResponse,
   ProductVariantSummaryResponse,
   InventorySummaryResponse,
   InventoryMovementResponse,
   InventoryReceiptRequest,
-  InventoryAdjustmentRequest
+  InventoryAdjustmentRequest,
+  StockByLocationResponse,
+  StockTransferResponse,
+  StorageLocationResponse
 } from '../types';
 import toast from 'react-hot-toast';
 
@@ -46,6 +51,15 @@ export const AdminProductDetails = () => {
   const [inventorySummary, setInventorySummary] = useState<InventorySummaryResponse | null>(null);
   const [inventoryHistory, setInventoryHistory] = useState<InventoryMovementResponse[]>([]);
   const [isInventoryLoading, setIsInventoryLoading] = useState(false);
+
+  // Stock-by-location state
+  const [stockByLocation, setStockByLocation] = useState<StockByLocationResponse | null>(null);
+  const [isStockByLocationLoading, setIsStockByLocationLoading] = useState(false);
+  const [activeLocations, setActiveLocations] = useState<StorageLocationResponse[]>([]);
+  const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
+  const [isTransferHistoryOpen, setIsTransferHistoryOpen] = useState(false);
+  const [transferHistory, setTransferHistory] = useState<StockTransferResponse[]>([]);
+  const [isTransferHistoryLoading, setIsTransferHistoryLoading] = useState(false);
 
   // Form states
   const [receiptForm, setReceiptForm] = useState<Partial<InventoryReceiptRequest>>({
@@ -111,9 +125,44 @@ export const AdminProductDetails = () => {
     }
   };
 
+  const loadStockByLocation = async () => {
+    if (!productId) return;
+    setIsStockByLocationLoading(true);
+    try {
+      const res = await locationInventoryService.getStockByLocation(Number(productId));
+      setStockByLocation(res);
+    } catch (err) {
+      toast.error('Failed to load stock by location');
+    } finally {
+      setIsStockByLocationLoading(false);
+    }
+  };
+
+  const loadTransferHistory = async () => {
+    if (!productId) return;
+    setIsTransferHistoryLoading(true);
+    try {
+      const res = await locationInventoryService.listTransfers({ productId: Number(productId), page: 0, size: 50 });
+      setTransferHistory(res.content);
+    } catch (err) {
+      toast.error('Failed to load transfer history');
+    } finally {
+      setIsTransferHistoryLoading(false);
+    }
+  };
+
   useEffect(() => {
     loadProduct();
+    loadStockByLocation();
+    locationInventoryService
+      .getLocations()
+      .then((locs) => setActiveLocations(locs.filter((l) => l.active)))
+      .catch(() => {});
   }, [productId]);
+
+  useEffect(() => {
+    if (isTransferHistoryOpen) loadTransferHistory();
+  }, [isTransferHistoryOpen]);
 
   useEffect(() => {
     if (isSummaryModalOpen) loadInventorySummary();
@@ -663,6 +712,99 @@ export const AdminProductDetails = () => {
     </Modal>
   );
 
+  const renderTransferModal = () => (
+    <Modal isOpen={isTransferModalOpen} onClose={() => setIsTransferModalOpen(false)} title="Record Stock Transfer">
+      {product && (
+        <TransferForm
+          fixedProduct={{ productId: product.productId, productName: product.productName }}
+          locations={activeLocations}
+          onSuccess={() => {
+            setIsTransferModalOpen(false);
+            loadProduct();
+            loadStockByLocation();
+          }}
+        />
+      )}
+    </Modal>
+  );
+
+  const renderTransferHistoryModal = () => (
+    <Modal
+      isOpen={isTransferHistoryOpen}
+      onClose={() => setIsTransferHistoryOpen(false)}
+      title="Transfer History"
+      size="lg"
+    >
+      {isTransferHistoryLoading ? (
+        <div className="h-64 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent"></div>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          <div className="overflow-x-auto custom-scrollbar">
+            <table className="w-full text-left text-sm">
+              <thead className="text-xs font-bold uppercase tracking-widest text-[#999999] border-b border-zinc-100 dark:border-zinc-800">
+                <tr>
+                  <th className="px-4 py-3">Movement</th>
+                  <th className="px-4 py-3">Qty</th>
+                  <th className="px-4 py-3">Type</th>
+                  <th className="px-4 py-3">By</th>
+                  <th className="px-4 py-3">Date</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
+                {transferHistory.map((t) => (
+                  <tr key={t.id} className={t.movedByName === 'System' ? 'text-zinc-400' : 'dark:text-zinc-300'}>
+                    <td className="px-4 py-3">
+                      <span className="flex items-center gap-1.5">
+                        {t.fromLocationName || <span className="italic text-zinc-400">Outside</span>}
+                        <ArrowRight className="h-3 w-3 text-zinc-400 shrink-0" />
+                        {t.toLocationName || <span className="italic text-zinc-400">Sold / Out</span>}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 font-bold">{t.quantity}</td>
+                    <td className="px-4 py-3">
+                      <span
+                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                          t.transferType === 'TRANSFER'
+                            ? 'bg-accent text-[#1A1A1A]'
+                            : t.transferType === 'RECEIPT'
+                            ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                            : t.transferType === 'SALE_DEDUCTION'
+                            ? 'bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400'
+                            : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+                        }`}
+                      >
+                        {t.transferType}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-xs">{t.movedByName}</td>
+                    <td className="px-4 py-3 text-xs">{new Date(t.createdAt).toLocaleString()}</td>
+                  </tr>
+                ))}
+                {transferHistory.length === 0 && (
+                  <tr>
+                    <td colSpan={5} className="px-4 py-8 text-center text-zinc-500">
+                      No transfers recorded for this product
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+          <div className="text-center">
+            <Link
+              to={`/admin/inventory/transfers`}
+              className="text-xs font-bold text-accent-dark hover:text-accent uppercase tracking-widest"
+            >
+              View all transfers →
+            </Link>
+          </div>
+        </div>
+      )}
+    </Modal>
+  );
+
   if (isLoading) {
     return (
       <div className="p-8 animate-pulse">
@@ -865,6 +1007,103 @@ export const AdminProductDetails = () => {
             </div>
           </div>
 
+          {/* Stock by Location Section */}
+          <div className="bg-white dark:bg-zinc-900 rounded-3xl p-8 shadow-sm border border-black/5 dark:border-white/5">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-lg font-bold dark:text-white">Stock by Location</h3>
+                  {stockByLocation && !stockByLocation.balancesMatchGlobal && (
+                    <span title="Resolvable by an adjustment or a corrective transfer.">
+                      <Badge variant="warning">Ledger out of sync</Badge>
+                    </span>
+                  )}
+                </div>
+                <p className="text-sm text-[#666666] dark:text-zinc-400 mt-1">Where this product physically sits</p>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setIsTransferHistoryOpen(true)}
+                  className="rounded-xl px-4 py-2 text-xs h-auto flex gap-2"
+                >
+                  <History className="h-4 w-4" /> Transfer History
+                </Button>
+                <Button
+                  onClick={() => setIsTransferModalOpen(true)}
+                  className="rounded-xl px-4 py-2 text-xs h-auto flex gap-2"
+                >
+                  <ArrowLeftRight className="h-4 w-4" /> Record Transfer
+                </Button>
+              </div>
+            </div>
+
+            {isStockByLocationLoading ? (
+              <div className="h-32 flex items-center justify-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent"></div>
+              </div>
+            ) : stockByLocation ? (
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {stockByLocation.locations.length === 0 && (
+                    <div className="sm:col-span-2 p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-2xl border border-zinc-100 dark:border-zinc-800 text-sm text-zinc-500">
+                      No location balances recorded yet for this product.
+                    </div>
+                  )}
+                  {stockByLocation.locations.map((loc) => (
+                    <div
+                      key={loc.locationId}
+                      className="flex items-center justify-between p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-2xl border border-zinc-100 dark:border-zinc-800"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="h-9 w-9 rounded-full bg-accent/15 flex items-center justify-center text-accent-dark">
+                          <Warehouse className="h-4 w-4" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold dark:text-white">{loc.locationName}</p>
+                          <p className="text-[10px] uppercase tracking-widest text-[#999999]">
+                            {loc.locationType === 'SHOP_FLOOR' ? 'Shop Floor' : 'Store Room'}
+                          </p>
+                        </div>
+                      </div>
+                      {loc.quantityOnHand < 0 ? (
+                        <div className="flex items-center gap-1.5 text-red-500">
+                          <AlertTriangle className="h-4 w-4" />
+                          <span className="text-sm font-bold">{loc.quantityOnHand}</span>
+                          <span className="text-[10px] font-medium">(needs transfer record)</span>
+                        </div>
+                      ) : (
+                        <span className="text-xl font-bold dark:text-white">{loc.quantityOnHand}</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                <div className="flex flex-wrap items-center gap-x-6 gap-y-1 pt-3 border-t border-zinc-100 dark:border-zinc-800 text-xs">
+                  <span className="text-[#666666] dark:text-zinc-400">
+                    Sellable stock: <strong className="dark:text-white">{stockByLocation.globalStockQuantity}</strong>
+                  </span>
+                  <span className="text-[#666666] dark:text-zinc-400">
+                    Reserved (unpaid carts):{' '}
+                    <strong className="dark:text-white">{stockByLocation.outstandingReservedQuantity}</strong>
+                  </span>
+                </div>
+
+                {stockByLocation.outstandingReservedQuantity > 0 && (
+                  <p className="flex items-start gap-1.5 text-[11px] text-[#999999] leading-relaxed">
+                    <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-0.5 text-amber-500" />
+                    Reserved units are held for in-progress e-commerce carts and are automatically released back
+                    to stock if payment fails or is not completed.
+                  </p>
+                )}
+              </div>
+            ) : (
+              <div className="p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-2xl border border-zinc-100 dark:border-zinc-800 text-sm text-zinc-500">
+                Location data unavailable.
+              </div>
+            )}
+          </div>
+
           {/* Discount Management Section */}
           <div className="bg-white dark:bg-zinc-900 rounded-3xl p-8 shadow-sm border border-black/5 dark:border-white/5">
             <div className="flex items-center justify-between mb-6">
@@ -937,6 +1176,8 @@ export const AdminProductDetails = () => {
       {renderHistoryModal()}
       {renderConversionModal()}
       {renderDiscountModal()}
+      {renderTransferModal()}
+      {renderTransferHistoryModal()}
       <ConfirmModal
         isOpen={isConfirmClearDiscountOpen}
         onClose={() => setIsConfirmClearDiscountOpen(false)}

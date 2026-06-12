@@ -330,6 +330,76 @@ export interface InventoryMovementResponse {
   createdAt: string;
 }
 
+// ─── Multi-Storeroom Inventory (location tracking) ─────────────────────────────
+
+export type StorageLocationType = 'STORE_ROOM' | 'SHOP_FLOOR';
+export type StockTransferType = 'TRANSFER' | 'RECEIPT' | 'SALE_DEDUCTION' | 'ADJUSTMENT';
+
+export interface StorageLocationResponse {
+  id: number;
+  name: string;
+  type: StorageLocationType;
+  active: boolean;
+  lowStockThreshold: number | null;
+  isDefaultReceiving: boolean;
+  isWalkInSaleSource: boolean;
+  isEcommerceFulfilmentSource: boolean;
+  createdAt: string;
+  updatedAt: string | null;
+}
+
+export interface StorageLocationRequest {
+  name: string;
+  type: StorageLocationType;
+  lowStockThreshold?: number | null;
+  active?: boolean;
+}
+
+export interface StorageLocationDefaultsRequest {
+  isDefaultReceiving?: boolean;
+  isWalkInSaleSource?: boolean;
+  isEcommerceFulfilmentSource?: boolean;
+}
+
+export interface StockTransferRequest {
+  productId: number;
+  fromLocationId: number;
+  toLocationId: number;
+  quantity: number;
+  note?: string;
+}
+
+export interface StockTransferResponse {
+  id: number;
+  productId: number;
+  productName: string;
+  fromLocationId: number | null;
+  fromLocationName: string | null;
+  toLocationId: number | null;
+  toLocationName: string | null;
+  quantity: number;
+  transferType: StockTransferType;
+  movedByName: string;
+  note: string | null;
+  createdAt: string;
+}
+
+export interface LocationStockEntry {
+  locationId: number;
+  locationName: string;
+  locationType: StorageLocationType;
+  quantityOnHand: number;
+}
+
+export interface StockByLocationResponse {
+  productId: number;
+  productName: string;
+  globalStockQuantity: number;
+  outstandingReservedQuantity: number;
+  locations: LocationStockEntry[];
+  balancesMatchGlobal: boolean;
+}
+
 export interface ProductRequest {
   productName: string;
   brand: string;

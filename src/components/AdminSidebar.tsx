@@ -16,7 +16,9 @@ import {
   BookOpen,
   Settings,
   Shield,
-  PercentCircle
+  PercentCircle,
+  Warehouse,
+  ArrowLeftRight
 } from 'lucide-react';
 import { cn } from '../utils';
 import { useState } from 'react';
@@ -28,6 +30,8 @@ const menuItems = [
   { icon: BarChart3, label: 'Analytics', path: '/admin/analytics' },
   { icon: Package, label: 'Products', path: '/admin/products' },
   { icon: Tag, label: 'Categories', path: '/admin/categories' },
+  { icon: Warehouse, label: 'Storage Locations', path: '/admin/inventory/locations' },
+  { icon: ArrowLeftRight, label: 'Stock Transfers', path: '/admin/inventory/transfers' },
   { icon: ShoppingCart, label: 'Orders', path: '/admin/orders' },
   { icon: ShoppingCart, label: 'Walk-In Orders', path: '/admin/walk-in' },
   { icon: Ticket, label: 'Coupons', path: '/admin/coupons' },

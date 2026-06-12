@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
-  Search,
   Bell,
   ChevronDown,
   User,
@@ -23,7 +22,10 @@ import {
   BookOpen,
   CheckCheck,
   Shield,
-  PercentCircle
+  PercentCircle,
+  Warehouse,
+  ArrowLeftRight,
+  PackagePlus
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -37,6 +39,8 @@ const menuItems = [
   { icon: BarChart3, label: 'Analytics', path: '/admin/analytics' },
   { icon: Package, label: 'Products', path: '/admin/products' },
   { icon: Tag, label: 'Categories', path: '/admin/categories' },
+  { icon: Warehouse, label: 'Storage Locations', path: '/admin/inventory/locations' },
+  { icon: ArrowLeftRight, label: 'Stock Transfers', path: '/admin/inventory/transfers' },
   { icon: ShoppingCart, label: 'Orders', path: '/admin/orders' },
   { icon: ShoppingCart, label: 'Walk-In Orders', path: '/admin/walk-in' },
   { icon: Ticket, label: 'Coupons', path: '/admin/coupons' },
@@ -71,6 +75,12 @@ export const AdminNavbar = () => {
   const notificationsRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
 
+  const notificationLink = (notif: { referenceType: string; referenceId: string }): string => {
+    if (notif.referenceType === 'ORDER') return `/admin/orders/${notif.referenceId}`;
+    if (notif.referenceType === 'PRODUCT') return `/admin/products/${notif.referenceId}`;
+    return '#';
+  };
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (notificationsRef.current && !notificationsRef.current.contains(event.target as Node)) {
@@ -103,15 +113,6 @@ export const AdminNavbar = () => {
         </div>
 
         <div className="flex items-center gap-2 md:gap-4">
-          <div className="hidden sm:flex items-center gap-2 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#999999]" />
-            <input
-              type="text"
-              placeholder="Search analytics..."
-              className="pl-10 pr-4 py-2 bg-[#F5F5F5] dark:bg-zinc-900 rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-accent w-48 transition-all focus:w-64 dark:text-white"
-            />
-          </div>
-
           {/* Theme toggle — hidden on mobile to prevent navbar overflow */}
           <div className="hidden sm:block">
             <button
@@ -166,7 +167,7 @@ export const AdminNavbar = () => {
                       {notifications.map((notif) => (
                         <Link
                           key={notif.recipientId}
-                          to={notif.referenceType === 'ORDER' ? `/admin/orders/${notif.referenceId}` : '#'}
+                          to={notificationLink(notif)}
                           onClick={() => {
                             setIsNotificationsOpen(false);
                             if (!notif.read) markAsRead(notif.recipientId);
@@ -178,9 +179,12 @@ export const AdminNavbar = () => {
                         >
                           <div className="flex justify-between items-start mb-1">
                             <p className={cn(
-                              "text-xs dark:text-white",
+                              "text-xs dark:text-white flex items-center gap-1.5",
                               !notif.read ? "font-bold" : "font-medium text-zinc-700 dark:text-zinc-300"
                             )}>
+                              {notif.type === 'SHOP_FLOOR_RESTOCK' && (
+                                <PackagePlus className="h-3.5 w-3.5 text-amber-500 shrink-0" />
+                              )}
                               {notif.title}
                             </p>
                             {!notif.read && (
@@ -194,6 +198,11 @@ export const AdminNavbar = () => {
                             {notif.referenceType === 'ORDER' && (
                               <span className="text-[10px] font-bold text-accent-dark">
                                 #{notif.referenceId}
+                              </span>
+                            )}
+                            {notif.referenceType === 'PRODUCT' && (
+                              <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400">
+                                View product
                               </span>
                             )}
                             <span className="text-[10px] text-zinc-400">
