@@ -709,6 +709,7 @@ export interface TopCompositionMetric {
 
 export interface DashboardMetrics {
   totalRevenue: string;
+  stockRevenuePotential: string;
   orderCountMetric: OrderCountMetric;
   totalCustomers: number;
   totalProducts: number;

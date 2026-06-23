@@ -119,7 +119,7 @@ export const AdminDashboard = () => {
     [PaymentStatus.FAILED]: 'danger',
   };
   const kpis: KPICard[] = [
-    { label: 'Total Revenue', value: metrics?.totalRevenue || 'GHS 0.00', trend: '0%', isUp: true, icon: DollarSign, color: 'emerald' },
+    { label: 'Total Revenue', value: metrics?.totalRevenue || 'GHS 0.00', trend: '0%', isUp: true, icon: DollarSign, color: 'emerald', breakdown: metrics?.stockRevenuePotential ? `Stock Revenue Potential: ${metrics.stockRevenuePotential}` : null },
     { label: 'Total Orders', value: metrics?.orderCountMetric.totalOrders.toString() || '0', breakdown: metrics ? { delivered: metrics.orderCountMetric.totalDeliveredOrders, pending: metrics.orderCountMetric.totalPendingOrders, cancelled: metrics.orderCountMetric.totalCancelledOrders } : null, icon: ShoppingBag, color: 'blue' },
     { label: 'Total Customers', value: metrics?.totalCustomers.toString() || '0', trend: '0%', isUp: true, icon: Users, color: 'indigo' },
     { label: 'Total Products', value: metrics?.totalProducts.toString() || '0', trend: '0%', isUp: true, icon: Package, color: 'amber' },
