@@ -72,7 +72,7 @@ export const Register = () => {
     >
       <div className="w-full max-w-md">
         <div className="text-center mb-10">
-          <h1 className="text-3xl font-serif font-bold dark:text-white">Create Account</h1>
+          <h1 className="text-3xl font-sans font-bold dark:text-white">Create Account</h1>
           <p className="text-sm text-[#666666] dark:text-zinc-400 mt-2">
             Join Perfume Budget today
           </p>

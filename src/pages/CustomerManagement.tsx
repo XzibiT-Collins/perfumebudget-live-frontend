@@ -36,7 +36,7 @@ export const CustomerManagement = () => {
   return (
     <div className="space-y-8">
       {/* <div>
-        <h1 className="text-3xl font-serif font-bold mb-2">Customer Management</h1>
+        <h1 className="text-3xl font-sans font-bold mb-2">Customer Management</h1>
         <p className="text-[#666666]">View and manage your store's registered customers.</p>
       </div> */}
 
@@ -63,7 +63,7 @@ export const CustomerManagement = () => {
               </Badge>
             )
           },
-          { header: 'Joined', accessor: (row: CustomerDataResponse) => new Date(row.dateJoined).toLocaleDateString() },
+          { header: 'Joined', accessor: (row: CustomerDataResponse) => new Date(row.dateJoined).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' }) },
         ]}
         data={customers}
         isLoading={isLoading}

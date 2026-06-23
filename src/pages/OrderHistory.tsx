@@ -47,7 +47,7 @@ export const OrderHistory = () => {
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <h1 className="text-4xl font-serif font-bold dark:text-white mb-10">Order History</h1>
+      <h1 className="text-4xl font-sans font-bold dark:text-white mb-10">Order History</h1>
 
       {isLoading ? (
         <div className="space-y-4 animate-pulse">

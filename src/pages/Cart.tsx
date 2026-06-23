@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import { Trash2, Minus, Plus, ShoppingBag, Box } from 'lucide-react';
+import { Trash2, Minus, Plus, ShoppingBag, Box, Tag } from 'lucide-react';
 import { Button } from '../components/Button';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -8,8 +8,10 @@ import { formatPrice, parsePrice } from '../utils';
 
 export const Cart = () => {
   const { user } = useAuth();
-  const { cartItems, localItems, totalPrice, updateQuantity, removeItem } = useCart();
+  const { cartItems, localItems, totalPrice, originalTotalPrice, updateQuantity, removeItem } = useCart();
   const navigate = useNavigate();
+
+  const anyOnSale = user ? cartItems.some(i => i.onSale) : false;
 
   // Use server cart items if logged in, otherwise local items
   const items = user
@@ -19,6 +21,9 @@ export const Cart = () => {
       name: i.productName,
       imageUrl: i.productImageUrl,
       price: i.unitPrice,
+      originalPrice: i.originalUnitPrice,
+      onSale: i.onSale,
+      discountPercentage: i.discountPercentage,
       quantity: i.quantity,
     }))
     : localItems.map((i) => ({
@@ -27,6 +32,9 @@ export const Cart = () => {
       name: i.productName,
       imageUrl: i.productImageUrl,
       price: i.unitPrice,
+      originalPrice: i.unitPrice,
+      onSale: false,
+      discountPercentage: 0,
       quantity: i.quantity,
     }));
 
@@ -36,12 +44,13 @@ export const Cart = () => {
       .reduce((sum, i) => sum + parsePrice(i.unitPrice) * i.quantity, 0);
 
   const formattedSubtotal = formatPrice(subtotal);
+  const formattedOriginal = user && anyOnSale ? originalTotalPrice : null;
 
   if (items.length === 0) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 flex flex-col items-center justify-center text-center">
         <ShoppingBag className="h-16 w-16 text-[#CCCCCC] mb-6" />
-        <h2 className="text-2xl font-serif font-bold dark:text-white mb-2">Your cart is empty</h2>
+        <h2 className="text-2xl font-sans font-bold dark:text-white mb-2">Your cart is empty</h2>
         <p className="text-[#666666] dark:text-zinc-400 mb-8">
           Discover our curated collection of fragrances.
         </p>
@@ -54,7 +63,7 @@ export const Cart = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <h1 className="text-4xl font-serif font-bold dark:text-white mb-10">Your Cart</h1>
+      <h1 className="text-4xl font-sans font-bold dark:text-white mb-10">Your Cart</h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
         {/* Items */}
@@ -92,7 +101,17 @@ export const Cart = () => {
                       <Trash2 className="h-4 w-4" />
                     </button>
                   </div>
-                  <p className="text-xs text-[#999999] dark:text-zinc-400">{item.price} each</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-xs font-semibold dark:text-zinc-100">{item.price} each</p>
+                    {item.onSale && (
+                      <>
+                        <p className="text-xs text-zinc-400 line-through">{item.originalPrice}</p>
+                        <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 text-[10px] font-bold">
+                          <Tag className="h-2.5 w-2.5" />{Math.round(item.discountPercentage)}% off
+                        </span>
+                      </>
+                    )}
+                  </div>
                   <div className="flex items-center justify-between mt-auto">
                     <div className="flex items-center gap-2 bg-[#F5F5F5] dark:bg-zinc-800 rounded-xl p-1">
                       <button
@@ -125,12 +144,23 @@ export const Cart = () => {
           <div className="space-y-3 text-sm mb-6">
             <div className="flex justify-between text-[#666666] dark:text-zinc-400">
               <span>Subtotal</span>
-              <span>{formattedSubtotal}</span>
+              <div className="text-right">
+                <span>{formattedSubtotal}</span>
+                {formattedOriginal && (
+                  <p className="text-xs text-zinc-400 line-through">{formattedOriginal}</p>
+                )}
+              </div>
             </div>
             <div className="flex justify-between text-[#666666] dark:text-zinc-400">
               <span>Delivery</span>
               <span>Calculated at checkout</span>
             </div>
+            {formattedOriginal && (
+              <div className="flex justify-between text-emerald-600 dark:text-emerald-400 font-medium">
+                <span>Sale savings</span>
+                <span>- {formatPrice(parsePrice(formattedOriginal) - subtotal)}</span>
+              </div>
+            )}
             <div className="h-px bg-[#F5F5F5] dark:bg-zinc-800" />
             <div className="flex justify-between font-bold text-base dark:text-white">
               <span>Total</span>

@@ -87,7 +87,7 @@ export const CustomerDetails = () => {
           <ArrowLeft className="h-5 w-5 dark:text-white" />
         </button>
         <div>
-          <h1 className="text-3xl font-serif font-bold mb-1 dark:text-white">Customer Profile</h1>
+          <h1 className="text-3xl font-sans font-bold mb-1 dark:text-white">Customer Profile</h1>
           <p className="text-[#666666] dark:text-zinc-400">View detailed metrics and order history.</p>
         </div>
       </div>
@@ -119,7 +119,7 @@ export const CustomerDetails = () => {
             <p className="text-sm font-medium text-zinc-500">Date Joined</p>
           </div>
           <p className="text-xl font-bold dark:text-white">
-            {new Date(customer.dateJoined).toLocaleDateString()}
+            {new Date(customer.dateJoined).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' })}
           </p>
         </div>
 

@@ -226,6 +226,10 @@ export const ProductManagement = () => {
           productImageUrl: created.productImageUrl,
           categoryName: categories.find(c => String(c.categoryId) === formData.categoryId)?.categoryName || '',
           price: created.sellingPrice,
+          originalPrice: created.originalPrice ?? created.sellingPrice,
+          onSale: created.onSale ?? false,
+          discountPercentage: created.discountPercentage ?? 0,
+          discountEndsAt: created.discountEndsAt ?? null,
           stockQuantity: created.stockQuantity,
           isOutOfStock: created.isOutOfStock,
           isActive: created.isActive,
@@ -295,7 +299,19 @@ export const ProductManagement = () => {
       ),
     },
     { header: 'Category', accessor: (p: ProductListing) => p.categoryName || '—' },
-    { header: 'Price', accessor: (p: ProductListing) => p.price },
+    { 
+      header: 'Price', 
+      accessor: (p: ProductListing) => (
+        <div className="flex flex-col">
+          <span className="font-semibold dark:text-white">{p.price}</span>
+          {p.onSale && (
+            <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold bg-emerald-50 dark:bg-emerald-950/20 px-1.5 py-0.5 rounded w-fit mt-0.5 shrink-0 animate-pulse">
+              {Math.round(p.discountPercentage)}% OFF
+            </span>
+          )}
+        </div>
+      )
+    },
     { header: 'Stock', accessor: (p: ProductListing) => p.stockQuantity },
     { 
       header: 'Status', 

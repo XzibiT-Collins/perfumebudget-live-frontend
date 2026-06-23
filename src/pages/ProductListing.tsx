@@ -92,7 +92,7 @@ export const ProductListingPage = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="mb-10 hidden sm:block">
-        <h1 className="text-4xl font-serif font-bold dark:text-white mb-2">All Fragrances</h1>
+        <h1 className="text-4xl font-sans font-bold dark:text-white mb-2">All Fragrances</h1>
         <p className="text-[#666666] dark:text-zinc-400">
           Explore our full collection of curated scents.
         </p>

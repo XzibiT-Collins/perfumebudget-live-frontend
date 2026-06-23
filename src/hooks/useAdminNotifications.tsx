@@ -165,6 +165,9 @@ export const useAdminNotifications = () => {
                       markAsRead(payload.recipientId);
                       if (payload.referenceType === 'ORDER') {
                         navigate(`/admin/orders/${payload.referenceId}`);
+                      } else if (payload.referenceType === 'PRODUCT') {
+                        // SHOP_FLOOR_RESTOCK → product detail (Stock by Location panel)
+                        navigate(`/admin/products/${payload.referenceId}`);
                       }
                     }}
                   >

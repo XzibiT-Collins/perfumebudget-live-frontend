@@ -128,7 +128,7 @@ export const VerifyOtp = () => {
                     <div className="mx-auto w-16 h-16 bg-accent/20 dark:bg-accent/10 rounded-full flex items-center justify-center mb-4">
                         <Mail className="h-8 w-8 text-accent-dark" />
                     </div>
-                    <h1 className="text-3xl font-serif font-bold dark:text-white">Verify Your Email</h1>
+                    <h1 className="text-3xl font-sans font-bold dark:text-white">Verify Your Email</h1>
                     <p className="text-sm text-[#666666] dark:text-zinc-400 mt-2">
                         {emailFromState
                             ? <>We've sent a verification code to <span className="font-semibold text-[#1A1A1A] dark:text-white">{emailFromState}</span></>

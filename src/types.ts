@@ -145,6 +145,10 @@ export interface ProductListing {
   isActive: boolean;
   isEnlisted: boolean;
   slug: string;
+  originalPrice: string;
+  onSale: boolean;
+  discountPercentage: number;
+  discountEndsAt: string | null;
 }
 
 /** Matches backend ProductDetailsPageResponse (public detail page) */
@@ -159,6 +163,10 @@ export interface ProductDetailsPageResponse {
   isOutOfStock: boolean;
   isFeatured: boolean;
   slug: string;
+  originalPrice: string;
+  onSale: boolean;
+  discountPercentage: number;
+  discountEndsAt: string | null;
 }
 
 /** Matches backend ProductDetails (admin detail) */
@@ -183,7 +191,38 @@ export interface ProductDetails {
   familyCode?: string;
   uomCode?: string;
   conversionFactor?: number;
+  originalPrice: string;
+  onSale: boolean;
+  discountPercentage: number;
+  discountEndsAt: string | null;
 }
+
+// ─── Discount DTOs ───────────────────────────────────────────────────────────
+
+export interface ProductDiscountRequest {
+  discountType: 'PERCENTAGE' | 'FLAT';
+  discountValue: number;
+  startAt: string;
+  endAt: string;
+}
+
+export interface ShopWideDiscountRequest {
+  label: string;
+  discountPercentage: number;
+  startAt: string;
+  endAt: string;
+}
+
+export interface ShopWideDiscountResponse {
+  id: number;
+  label: string;
+  discountPercentage: number;
+  startAt: string;
+  endAt: string;
+  isActive: boolean;
+  currentlyActive: boolean;
+}
+
 
 export interface ProductFamilyResponse {
   id: number;
@@ -291,6 +330,76 @@ export interface InventoryMovementResponse {
   createdAt: string;
 }
 
+// ─── Multi-Storeroom Inventory (location tracking) ─────────────────────────────
+
+export type StorageLocationType = 'STORE_ROOM' | 'SHOP_FLOOR';
+export type StockTransferType = 'TRANSFER' | 'RECEIPT' | 'SALE_DEDUCTION' | 'ADJUSTMENT';
+
+export interface StorageLocationResponse {
+  id: number;
+  name: string;
+  type: StorageLocationType;
+  active: boolean;
+  lowStockThreshold: number | null;
+  isDefaultReceiving: boolean;
+  isWalkInSaleSource: boolean;
+  isEcommerceFulfilmentSource: boolean;
+  createdAt: string;
+  updatedAt: string | null;
+}
+
+export interface StorageLocationRequest {
+  name: string;
+  type: StorageLocationType;
+  lowStockThreshold?: number | null;
+  active?: boolean;
+}
+
+export interface StorageLocationDefaultsRequest {
+  isDefaultReceiving?: boolean;
+  isWalkInSaleSource?: boolean;
+  isEcommerceFulfilmentSource?: boolean;
+}
+
+export interface StockTransferRequest {
+  productId: number;
+  fromLocationId: number;
+  toLocationId: number;
+  quantity: number;
+  note?: string;
+}
+
+export interface StockTransferResponse {
+  id: number;
+  productId: number;
+  productName: string;
+  fromLocationId: number | null;
+  fromLocationName: string | null;
+  toLocationId: number | null;
+  toLocationName: string | null;
+  quantity: number;
+  transferType: StockTransferType;
+  movedByName: string;
+  note: string | null;
+  createdAt: string;
+}
+
+export interface LocationStockEntry {
+  locationId: number;
+  locationName: string;
+  locationType: StorageLocationType;
+  quantityOnHand: number;
+}
+
+export interface StockByLocationResponse {
+  productId: number;
+  productName: string;
+  globalStockQuantity: number;
+  outstandingReservedQuantity: number;
+  locations: LocationStockEntry[];
+  balancesMatchGlobal: boolean;
+}
+
 export interface ProductRequest {
   productName: string;
   brand: string;
@@ -334,13 +443,21 @@ export interface CartItemResponse {
   productId: number;
   productName: string;
   productImageUrl: string;
+  /** Effective (discounted) per-unit price */
   unitPrice: string;
+  /** Pre-discount per-unit price; equal to unitPrice when not on sale */
+  originalUnitPrice: string;
+  onSale: boolean;
+  discountPercentage: number;
   quantity: number;
 }
 
 export interface CartResponse {
   cartItems: CartItemResponse[];
+  /** Effective total (what will be charged) */
   totalPrice: string;
+  /** Pre-discount total; equal to totalPrice when nothing on sale */
+  originalTotalPrice: string;
 }
 
 /** POST /api/v1/cart/items/add-item */
@@ -373,6 +490,10 @@ export interface OrderResponse {
   orderId: number;
   orderNumber: string;
   subtotal: string;
+  /** Gross subtotal before automatic product/shop discount. Equal to subtotal when nothing was on sale. */
+  originalSubtotal?: string;
+  /** Automatic (product/shop-wide) discount baked into line prices. */
+  automaticDiscountAmount?: string;
   discountAmount: string;
   totalAmount: string;
   paymentStatus: PaymentStatus;
@@ -588,6 +709,7 @@ export interface TopCompositionMetric {
 
 export interface DashboardMetrics {
   totalRevenue: string;
+  stockRevenuePotential: string;
   orderCountMetric: OrderCountMetric;
   totalCustomers: number;
   totalProducts: number;
@@ -698,6 +820,10 @@ export interface WalkInOrderResponse {
   paymentMethod: WalkInPaymentMethod;
   status: WalkInOrderStatus;
   subtotal: string;
+  /** Gross subtotal before automatic product/shop discount. Equal to subtotal when nothing was on sale. */
+  originalSubtotal?: string;
+  /** Automatic (product/shop-wide) discount baked into line prices. */
+  automaticDiscountAmount?: string;
   discountAmount: string;
   totalTaxAmount: string;
   totalAmount: string;

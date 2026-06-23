@@ -49,6 +49,9 @@ import { FrontDeskUserManagement } from './pages/FrontDeskUserManagement';
 import { FrontDeskTemplate } from './pages/FrontDeskTemplate';
 import { FrontDeskUserPermissions } from './pages/FrontDeskUserPermissions';
 import { AdminHomeRedirect } from './components/AdminHomeRedirect';
+import { ShopWideDiscountManagement } from './pages/ShopWideDiscountManagement';
+import { StorageLocationManagement } from './pages/StorageLocationManagement';
+import { StockTransfers } from './pages/StockTransfers';
 
 export default function App() {
   return (
@@ -91,6 +94,7 @@ export default function App() {
                   <Route path="/admin/walk-in/:orderNumber" element={<WalkInOrderDetail />} />
                   <Route path="/admin/customers" element={<CustomerManagement />} />
                   <Route path="/admin/customers/:id" element={<CustomerDetails />} />
+                  <Route path="/admin/inventory/transfers" element={<StockTransfers />} />
                 </Route>
 
                 {/* Admin Only Routes */}
@@ -107,6 +111,8 @@ export default function App() {
                   <Route path="/admin/front-desk" element={<FrontDeskUserManagement />} />
                   <Route path="/admin/front-desk/template" element={<FrontDeskTemplate />} />
                   <Route path="/admin/front-desk/users/:userId/permissions" element={<FrontDeskUserPermissions />} />
+                  <Route path="/admin/shop-discount" element={<ShopWideDiscountManagement />} />
+                  <Route path="/admin/inventory/locations" element={<StorageLocationManagement />} />
                 </Route>
               </Routes>
             </Layout>
