@@ -109,6 +109,15 @@ export const WalkInOrderCreation = () => {
     ? Math.max(0, Number(amountPaid) - total) 
     : 0;
 
+  const isAnyCartItemOnSale = cart.some(item => item.onSale);
+
+  useEffect(() => {
+    if (isAnyCartItemOnSale) {
+      setDiscountType('');
+      setDiscountValue('');
+    }
+  }, [isAnyCartItemOnSale]);
+
   // --- Handlers ---
   const addToCart = (product: ProductListing) => {
     setCart((prev) => {
@@ -336,10 +345,20 @@ export const WalkInOrderCreation = () => {
                                  </div>
                               )}
                            </div>
-                           <div className="flex-1 min-w-0">
-                              <p className="font-bold text-sm truncate dark:text-white">{item.productName}</p>
-                              <p className="text-xs text-[#999999]">{item.price} each</p>
-                           </div>
+                            <div className="flex-1 min-w-0">
+                               <p className="font-bold text-sm truncate dark:text-white">{item.productName}</p>
+                               <div className="flex items-center flex-wrap gap-1.5 mt-0.5">
+                                 <p className="text-xs text-[#999999]">{item.price} each</p>
+                                 {item.onSale && (
+                                   <>
+                                     <span className="text-[10px] text-zinc-400 line-through">{item.originalPrice}</span>
+                                     <span className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/20 px-1 py-0.2 rounded shrink-0">
+                                       SALE
+                                     </span>
+                                   </>
+                                 )}
+                               </div>
+                            </div>
                        </div>
                        <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto">
                            <div className="flex items-center gap-3 bg-zinc-50 dark:bg-zinc-800 p-1.5 rounded-xl shrink-0">
@@ -498,31 +517,37 @@ export const WalkInOrderCreation = () => {
                     <Tag className="h-3.5 w-3.5" />
                     Apply Discount
                  </h3>
-                 <div className="space-y-4">
-                    <Dropdown
-                       value={discountType}
-                       onChange={(val) => {
-                          setDiscountType(val as WalkInDiscountType | '');
-                          if (!val) setDiscountValue('');
-                       }}
-                       options={[
-                          { label: 'No Discount', value: '' },
-                          { label: 'Percentage (%)', value: WalkInDiscountType.PERCENTAGE },
-                          { label: 'Flat Amount', value: WalkInDiscountType.FLAT },
-                       ]}
-                    />
-                    {discountType && (
-                       <Input 
-                          label={discountType === WalkInDiscountType.PERCENTAGE ? "Discount Percentage" : "Discount Amount"}
-                          type="number"
-                          step="0.01"
-                          value={discountValue}
-                          onChange={(e) => setDiscountValue(e.target.value)}
-                          className="h-10 text-xs"
-                          placeholder={discountType === WalkInDiscountType.PERCENTAGE ? "e.g. 10" : "e.g. 50.00"}
-                       />
-                    )}
-                 </div>
+                 {isAnyCartItemOnSale ? (
+                   <p className="text-xs text-amber-500 font-medium leading-relaxed">
+                     Manual discounts cannot be combined with items already on sale. Line prices already reflect active sale prices.
+                   </p>
+                 ) : (
+                   <div className="space-y-4">
+                      <Dropdown
+                         value={discountType}
+                         onChange={(val) => {
+                            setDiscountType(val as WalkInDiscountType | '');
+                            if (!val) setDiscountValue('');
+                         }}
+                         options={[
+                            { label: 'No Discount', value: '' },
+                            { label: 'Percentage (%)', value: WalkInDiscountType.PERCENTAGE },
+                            { label: 'Flat Amount', value: WalkInDiscountType.FLAT },
+                         ]}
+                      />
+                      {discountType && (
+                         <Input 
+                            label={discountType === WalkInDiscountType.PERCENTAGE ? "Discount Percentage" : "Discount Amount"}
+                            type="number"
+                            step="0.01"
+                            value={discountValue}
+                            onChange={(e) => setDiscountValue(e.target.value)}
+                            className="h-10 text-xs"
+                            placeholder={discountType === WalkInDiscountType.PERCENTAGE ? "e.g. 10" : "e.g. 50.00"}
+                         />
+                      )}
+                   </div>
+                 )}
               </div>
 
               {/* Payment Section */}

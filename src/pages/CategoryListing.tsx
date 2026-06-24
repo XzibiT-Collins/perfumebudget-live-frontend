@@ -15,7 +15,7 @@ export const CategoryListing = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="mb-12 text-center">
-        <h1 className="text-4xl md:text-5xl font-serif font-bold mb-4 dark:text-white">Categories</h1>
+        <h1 className="text-4xl md:text-5xl font-sans font-bold mb-4 dark:text-white">Categories</h1>
         <p className="text-[#666666] dark:text-zinc-400 max-w-2xl mx-auto">
           Explore our collections curated by olfactory family. Find your signature scent.
         </p>

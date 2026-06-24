@@ -50,11 +50,17 @@ export const OrderManagement = () => {
   const columns = [
     {
       header: 'Order #',
-      accessor: (o: OrderListResponse) => o.orderNumber
-    },
-    {
-      header: 'Date',
-      accessor: (o: OrderListResponse) => new Date(o.orderDate).toLocaleDateString()
+      accessor: (o: OrderListResponse) => (
+        <span
+          className="font-bold text-zinc-900 dark:text-white hover:underline cursor-pointer"
+          onClick={(e) => {
+            e.stopPropagation();
+            navigate(`/admin/orders/${o.orderNumber}`);
+          }}
+        >
+          {o.orderNumber}
+        </span>
+      )
     },
     {
       header: 'Amount',
@@ -75,6 +81,13 @@ export const OrderManagement = () => {
           {o.deliveryStatus}
         </Badge>
       )
+    },
+    {
+      header: 'Date',
+      accessor: (o: OrderListResponse) => new Date(o.orderDate).toLocaleString(undefined, {
+        day: '2-digit', month: 'short', year: 'numeric',
+        hour: '2-digit', minute: '2-digit', hour12: true,
+      })
     },
   ];
 

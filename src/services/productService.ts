@@ -10,6 +10,7 @@ import type {
     StockConversionRequest,
     ConversionResponse,
     ProductVariantSummaryResponse,
+    ProductDiscountRequest,
 } from '../types';
 
 export const productService = {
@@ -103,6 +104,24 @@ export const productService = {
 
     delete: async (productId: number): Promise<void> => {
         await api.delete(`/product/delete/${productId}`);
+    },
+
+    setDiscount: async (
+        productId: number,
+        data: ProductDiscountRequest
+    ): Promise<ProductDetails> => {
+        const res = await api.put<CustomApiResponse<ProductDetails>>(
+            `/product/admin/${productId}/discount`,
+            data
+        );
+        return res.data.data;
+    },
+
+    clearDiscount: async (productId: number): Promise<ProductDetails> => {
+        const res = await api.delete<CustomApiResponse<ProductDetails>>(
+            `/product/admin/${productId}/discount`
+        );
+        return res.data.data;
     },
 
     getFamilies: async (): Promise<ProductFamilyResponse[]> => {

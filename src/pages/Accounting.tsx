@@ -180,7 +180,7 @@ export const Accounting = () => {
   const renderCashFlow = () => {
     if (!cashFlow) return null;
     const columns = [
-      { header: 'Date', accessor: (row: any) => new Date(row.date).toLocaleDateString() },
+      { header: 'Date', accessor: (row: any) => new Date(row.date).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' }) },
       { header: 'Inflow', accessor: (row: any) => <span className="text-green-500">{fmt(row.inflow)}</span> },
       { header: 'Outflow', accessor: (row: any) => <span className="text-red-500">{fmt(row.outflow)}</span> },
       { header: 'Net', accessor: (row: any) => <span className="font-bold">{fmt(row.net)}</span> },
@@ -251,7 +251,7 @@ export const Accounting = () => {
                   <p className="text-sm text-zinc-500">{entry.description}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm text-zinc-500">{new Date(entry.transactionDate || '').toLocaleString()}</p>
+                  <p className="text-sm text-zinc-500">{new Date(entry.transactionDate || '').toLocaleString(undefined, { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true })}</p>
                   {entry.referenceId && <p className="text-sm font-medium dark:text-zinc-300">Ref: {entry.referenceType} {entry.referenceId}</p>}
                 </div>
               </div>

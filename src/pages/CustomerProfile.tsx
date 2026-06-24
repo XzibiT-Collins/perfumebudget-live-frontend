@@ -515,13 +515,26 @@ export const CustomerProfile = () => {
             </div>
             <div className="h-px bg-[#F5F5F5] dark:bg-zinc-800" />
             <div className="space-y-2">
+              {/* Subtotal — strike through original when an automatic discount applied */}
               <div className="flex justify-between text-sm text-[#666666] dark:text-zinc-400">
                 <span>Subtotal</span>
-                <span>{selectedOrder.subtotal}</span>
+                <div className="text-right">
+                  {selectedOrder.originalSubtotal && selectedOrder.originalSubtotal !== selectedOrder.subtotal && (
+                    <p className="text-xs text-zinc-400 line-through">{selectedOrder.originalSubtotal}</p>
+                  )}
+                  <span>{selectedOrder.subtotal}</span>
+                </div>
               </div>
+              {/* Automatic product/shop-wide discount */}
+              {selectedOrder.automaticDiscountAmount && parseFloat(selectedOrder.automaticDiscountAmount.replace(/[^0-9.]/g, '')) > 0 && (
+                <div className="flex justify-between text-sm text-red-500">
+                  <span>Discount</span>
+                  <span>-{selectedOrder.automaticDiscountAmount}</span>
+                </div>
+              )}
               {selectedOrder.discountAmount && parseFloat(selectedOrder.discountAmount.replace(/[^0-9.]/g, '')) > 0 && (
                 <div className="flex justify-between text-sm text-green-600">
-                  <span>Discount</span>
+                  <span>Coupon Discount</span>
                   <span>-{selectedOrder.discountAmount}</span>
                 </div>
               )}
@@ -541,6 +554,14 @@ export const CustomerProfile = () => {
                 <span>Grand Total</span>
                 <span>{selectedOrder.taxes ? selectedOrder.taxes.totalAmountAfterTax : selectedOrder.totalAmount}</span>
               </div>
+              {/* Savings banner */}
+              {selectedOrder.automaticDiscountAmount && parseFloat(selectedOrder.automaticDiscountAmount.replace(/[^0-9.]/g, '')) > 0 && (
+                <div className="flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-800">
+                  <span className="text-green-600 dark:text-green-400 text-xs font-bold">
+                    You saved {selectedOrder.automaticDiscountAmount} on this order!
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         </Modal>

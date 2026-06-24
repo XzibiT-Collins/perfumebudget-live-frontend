@@ -42,7 +42,7 @@ export const ForgotPassword = () => {
                             <KeyRound className="h-8 w-8 text-accent-dark" />
                         )}
                     </div>
-                    <h1 className="text-3xl font-serif font-bold dark:text-white">
+                    <h1 className="text-3xl font-sans font-bold dark:text-white">
                         {isSubmitted ? 'Check Your Email' : 'Forgot Password'}
                     </h1>
                     <p className="text-sm text-[#666666] dark:text-zinc-400 mt-2">

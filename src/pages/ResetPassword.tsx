@@ -67,7 +67,7 @@ export const ResetPassword = () => {
                         <div className="mx-auto w-16 h-16 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center mb-4">
                             <AlertTriangle className="h-8 w-8 text-red-500" />
                         </div>
-                        <h1 className="text-3xl font-serif font-bold dark:text-white">Invalid Link</h1>
+                        <h1 className="text-3xl font-sans font-bold dark:text-white">Invalid Link</h1>
                         <p className="text-sm text-[#666666] dark:text-zinc-400 mt-2">
                             This password reset link is invalid or has expired.
                         </p>
@@ -112,7 +112,7 @@ export const ResetPassword = () => {
                     <div className="mx-auto w-16 h-16 bg-accent/20 dark:bg-accent/10 rounded-full flex items-center justify-center mb-4">
                         <ShieldCheck className="h-8 w-8 text-accent-dark" />
                     </div>
-                    <h1 className="text-3xl font-serif font-bold dark:text-white">Reset Password</h1>
+                    <h1 className="text-3xl font-sans font-bold dark:text-white">Reset Password</h1>
                     <p className="text-sm text-[#666666] dark:text-zinc-400 mt-2">
                         Choose a strong new password for your account.
                     </p>

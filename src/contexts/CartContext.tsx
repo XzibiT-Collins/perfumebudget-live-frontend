@@ -17,6 +17,7 @@ interface CartContextType {
   cartItems: CartItemResponse[];
   localItems: LocalCartItem[];
   totalPrice: string;
+  originalTotalPrice: string;
   itemCount: number;
   isCartOpen: boolean;
   isLoading: boolean;
@@ -36,6 +37,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   const { user } = useAuth();
   const [cartItems, setCartItems] = useState<CartItemResponse[]>([]);
   const [totalPrice, setTotalPrice] = useState('0.00');
+  const [originalTotalPrice, setOriginalTotalPrice] = useState('0.00');
   const [localItems, setLocalItems] = useState<LocalCartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -60,6 +62,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
       const cart: CartResponse = await cartService.getCart();
       setCartItems(cart.cartItems);
       setTotalPrice(cart.totalPrice);
+      setOriginalTotalPrice(cart.originalTotalPrice ?? cart.totalPrice);
     } catch {
       // Session expired; cart state stays empty
     } finally {
@@ -87,6 +90,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
       // Logged out — clear server cart state
       setCartItems([]);
       setTotalPrice('0.00');
+      setOriginalTotalPrice('0.00');
     }
   }, [user]);
 
@@ -141,6 +145,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
       await cartService.clearCart();
       setCartItems([]);
       setTotalPrice('0.00');
+      setOriginalTotalPrice('0.00');
     } else {
       setLocalItems([]);
     }
@@ -156,6 +161,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
         cartItems,
         localItems,
         totalPrice,
+        originalTotalPrice,
         itemCount,
         isCartOpen,
         isLoading,

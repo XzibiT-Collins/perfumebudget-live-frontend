@@ -32,7 +32,7 @@ const emptyAddress: DeliveryDetailRequest = {
 
 export const Checkout = () => {
   const navigate = useNavigate();
-  const { totalPrice, refreshCart } = useCart();
+  const { totalPrice, refreshCart, cartItems } = useCart();
   const { user } = useAuth();
 
   const [addresses, setAddresses] = useState<DeliveryDetailResponse[]>([]);
@@ -46,6 +46,15 @@ export const Checkout = () => {
   const [isTaxLoading, setIsTaxLoading] = useState(false);
   const [couponError, setCouponError] = useState<string | null>(null);
   const taxRequestIdRef = useRef(0);
+
+  // Derive directly from CartItemResponse.onSale — no extra fetch needed (§3.4 / §5.1)
+  const anyItemOnSale = cartItems.some(i => i.onSale);
+
+  useEffect(() => {
+    if (anyItemOnSale) {
+      setCouponCode('');
+    }
+  }, [anyItemOnSale]);
 
   useEffect(() => {
     deliveryDetailService.getMyAddresses().then((data) => {
@@ -135,7 +144,7 @@ export const Checkout = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <h1 className="text-4xl font-serif font-bold dark:text-white mb-10">Checkout</h1>
+      <h1 className="text-4xl font-sans font-bold dark:text-white mb-10">Checkout</h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
         {/* Delivery Address */}
@@ -258,12 +267,18 @@ export const Checkout = () => {
           {/* Coupon */}
           <div className="pt-2">
             <Input
-              placeholder="Enter coupon code"
+              placeholder={anyItemOnSale ? "Sale items in cart (no coupon allowed)" : "Enter coupon code"}
               value={couponCode}
               onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
               error={couponError || undefined}
-              className="bg-[#F5F5F5] dark:bg-zinc-800 border-none h-11"
+              disabled={anyItemOnSale}
+              className="bg-[#F5F5F5] dark:bg-zinc-800 border-none h-11 disabled:opacity-60 disabled:cursor-not-allowed"
             />
+            {anyItemOnSale && (
+              <p className="text-xs text-amber-500 mt-1.5 font-medium leading-relaxed">
+                Coupon codes can't be combined with items already on sale.
+              </p>
+            )}
           </div>
 
           <Button
